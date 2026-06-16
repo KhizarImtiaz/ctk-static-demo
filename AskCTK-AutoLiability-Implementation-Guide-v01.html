@@ -1,0 +1,1443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ask CTK — Auto Liability Implementation Guide</title>
+<style>
+  :root {
+    --bg: #0f0f1a;
+    --bg2: #161628;
+    --bg3: #1e1e35;
+    --border: #2a2a4a;
+    --blue: #4f8ef7;
+    --blue-dim: #1e3a6e;
+    --green: #34d399;
+    --green-dim: #064e3b;
+    --orange: #f59e0b;
+    --orange-dim: #451a03;
+    --purple: #a78bfa;
+    --purple-dim: #2e1065;
+    --red: #f87171;
+    --red-dim: #450a0a;
+    --text: #e2e8f0;
+    --text2: #94a3b8;
+    --text3: #64748b;
+    --card: #1a1a2e;
+    --radius: 12px;
+    --radius-sm: 8px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    font-size: 15px;
+  }
+
+  /* NAV */
+  nav {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(15,15,26,0.95);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
+    display: flex; align-items: center; gap: 4px;
+    height: 52px;
+    overflow-x: auto;
+  }
+  .nav-brand { font-weight: 700; color: var(--blue); font-size: 14px; margin-right: 16px; white-space: nowrap; }
+  nav a {
+    color: var(--text2); text-decoration: none; font-size: 13px;
+    padding: 6px 12px; border-radius: 6px; white-space: nowrap;
+    transition: all 0.2s;
+  }
+  nav a:hover { background: var(--bg3); color: var(--text); }
+
+  /* HERO */
+  .hero {
+    background: linear-gradient(135deg, #0f0f1a 0%, #1a1a3e 40%, #0d1b2a 100%);
+    padding: 72px 24px 56px;
+    text-align: center;
+    border-bottom: 1px solid var(--border);
+    position: relative; overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+    width: 600px; height: 600px;
+    background: radial-gradient(ellipse, rgba(79,142,247,0.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(79,142,247,0.1); border: 1px solid rgba(79,142,247,0.3);
+    border-radius: 100px; padding: 6px 16px; font-size: 13px; color: var(--blue);
+    margin-bottom: 24px;
+  }
+  .hero-badge::before { content: '●'; font-size: 8px; animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+  .hero h1 { font-size: 42px; font-weight: 800; letter-spacing: -1px; margin-bottom: 16px; }
+  .hero h1 span { color: var(--blue); }
+  .hero p { font-size: 18px; color: var(--text2); max-width: 640px; margin: 0 auto 40px; }
+  .hero-stats {
+    display: flex; justify-content: center; gap: 16px; flex-wrap: wrap;
+  }
+  .stat {
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 20px 32px; text-align: center;
+    min-width: 160px;
+  }
+  .stat-num { font-size: 36px; font-weight: 800; line-height: 1; margin-bottom: 4px; }
+  .stat-label { font-size: 13px; color: var(--text2); }
+  .stat.blue .stat-num { color: var(--blue); }
+  .stat.green .stat-num { color: var(--green); }
+  .stat.orange .stat-num { color: var(--orange); }
+  .stat.purple .stat-num { color: var(--purple); }
+
+  /* LAYOUT */
+  .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+  .section { padding: 64px 24px; border-bottom: 1px solid var(--border); }
+  .section:last-child { border-bottom: none; }
+  .section-header { margin-bottom: 40px; }
+  .section-tag {
+    font-size: 12px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
+    color: var(--blue); margin-bottom: 8px;
+  }
+  .section-title { font-size: 28px; font-weight: 700; margin-bottom: 12px; letter-spacing: -0.5px; }
+  .section-desc { font-size: 16px; color: var(--text2); max-width: 700px; }
+
+  /* CARDS */
+  .card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 24px;
+    transition: border-color 0.2s;
+  }
+  .card:hover { border-color: var(--blue); }
+
+  /* ── ARCHITECTURE DIAGRAM ── */
+  .arch-diagram {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 32px; overflow-x: auto;
+  }
+  .arch-zones {
+    display: flex; flex-direction: column; gap: 0;
+    min-width: 700px;
+  }
+  .arch-zone {
+    display: flex; align-items: stretch; position: relative;
+  }
+  .zone-label {
+    width: 200px; min-width: 200px;
+    padding: 20px 16px; display: flex; flex-direction: column; justify-content: center;
+    border-right: 2px solid var(--border);
+  }
+  .zone-label .zone-num {
+    font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
+    margin-bottom: 4px; opacity: 0.7;
+  }
+  .zone-label .zone-name { font-size: 14px; font-weight: 700; margin-bottom: 2px; }
+  .zone-label .zone-tech { font-size: 11px; color: var(--text2); }
+  .zone-content {
+    flex: 1; padding: 20px 24px;
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  }
+  .zone-box {
+    border-radius: 8px; padding: 10px 16px; font-size: 13px; font-weight: 600;
+    white-space: nowrap;
+  }
+  .zone-arrow {
+    font-size: 16px; color: var(--text3);
+  }
+  .zone-desc { font-size: 13px; color: var(--text2); font-style: italic; }
+
+  .zone-blue  { background: var(--blue-dim); border: 1px solid var(--blue); color: var(--blue); }
+  .zone-green { background: var(--green-dim); border: 1px solid var(--green); color: var(--green); }
+  .zone-orange{ background: var(--orange-dim); border: 1px solid var(--orange); color: var(--orange); }
+  .zone-purple{ background: var(--purple-dim); border: 1px solid var(--purple); color: var(--purple); }
+  .zone-red   { background: var(--red-dim); border: 1px solid var(--red); color: var(--red); }
+
+  .zone-separator {
+    display: flex; align-items: center; gap: 8px;
+    padding: 0 0 0 200px; color: var(--text3); font-size: 13px;
+    margin: 4px 0;
+  }
+  .zone-separator::before, .zone-separator::after {
+    content: ''; flex: 1; height: 1px; background: var(--border);
+  }
+  .zone-separator::before { max-width: 32px; }
+
+  /* Status indicators */
+  .status-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+  .status-pill {
+    font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 100px;
+  }
+  .status-pending  { background: rgba(79,142,247,0.15); color: var(--blue); }
+  .status-processing { background: rgba(245,158,11,0.15); color: var(--orange); }
+  .status-completed { background: rgba(52,211,153,0.15); color: var(--green); }
+  .status-retry    { background: rgba(167,139,250,0.15); color: var(--purple); }
+  .status-failed   { background: rgba(248,113,113,0.15); color: var(--red); }
+
+  /* ── DATA FLOW TABLE ── */
+  .flow-table { width: 100%; border-collapse: collapse; }
+  .flow-table th {
+    background: var(--bg3); padding: 12px 16px; text-align: left;
+    font-size: 12px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase;
+    color: var(--text2); border-bottom: 2px solid var(--border);
+  }
+  .flow-table td {
+    padding: 14px 16px; border-bottom: 1px solid var(--border);
+    vertical-align: top; font-size: 14px;
+  }
+  .flow-table tr:hover td { background: var(--bg2); }
+  .flow-table tr.section-row td { background: var(--bg3); padding: 8px 16px; }
+  .flow-step {
+    width: 32px; height: 32px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 800; flex-shrink: 0;
+  }
+  .flow-zone-tag {
+    font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 4px; white-space: nowrap;
+  }
+  .flow-time { font-size: 12px; font-weight: 600; white-space: nowrap; }
+  .code-tag {
+    font-family: 'Fira Code', 'Consolas', monospace; font-size: 12px;
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: 4px; padding: 2px 6px; color: var(--purple);
+  }
+
+  /* ── INTEGRATION POINTS ── */
+  .domain-group { margin-bottom: 40px; }
+  .domain-title {
+    font-size: 13px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
+    color: var(--text3); margin-bottom: 16px; padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .domain-count {
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: 100px; font-size: 11px; padding: 2px 8px; color: var(--text2);
+  }
+  .int-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 16px; }
+  .int-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 20px; position: relative;
+    transition: border-color 0.2s, transform 0.2s;
+  }
+  .int-card:hover { border-color: var(--blue); transform: translateY(-2px); }
+  .int-num {
+    position: absolute; top: 16px; right: 16px;
+    width: 28px; height: 28px; border-radius: 50%;
+    background: var(--bg3); border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 800; color: var(--text2);
+  }
+  .int-page { font-size: 12px; color: var(--text3); margin-bottom: 4px; }
+  .int-section { font-size: 16px; font-weight: 700; margin-bottom: 12px; }
+  .int-fills { margin-bottom: 12px; }
+  .int-fills-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--green); margin-bottom: 6px; }
+  .int-fill-item {
+    font-size: 13px; color: var(--text); padding: 4px 0;
+    display: flex; align-items: flex-start; gap: 6px;
+  }
+  .int-fill-item::before { content: '→'; color: var(--green); flex-shrink: 0; font-size: 12px; margin-top: 1px; }
+  .int-meta { display: flex; flex-direction: column; gap: 6px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); }
+  .int-meta-row { display: flex; gap: 8px; align-items: flex-start; font-size: 12px; }
+  .int-meta-key { color: var(--text3); min-width: 60px; flex-shrink: 0; }
+  .int-meta-val { color: var(--text2); }
+
+  /* ── PHASE ROADMAP ── */
+  .roadmap { position: relative; }
+  .roadmap-line {
+    position: absolute; left: 28px; top: 0; bottom: 0;
+    width: 2px; background: linear-gradient(to bottom, var(--blue), var(--purple), var(--green));
+    border-radius: 2px;
+  }
+  .phase-item { display: flex; gap: 24px; margin-bottom: 32px; position: relative; }
+  .phase-dot {
+    width: 58px; min-width: 58px; height: 58px;
+    border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 800; border: 3px solid;
+    background: var(--bg); z-index: 1; flex-shrink: 0;
+  }
+  .phase-content { padding-top: 8px; flex: 1; }
+  .phase-title { font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+  .phase-subtitle { font-size: 13px; color: var(--text2); margin-bottom: 12px; }
+  .phase-items { display: flex; flex-direction: column; gap: 6px; }
+  .phase-item-row {
+    display: flex; align-items: flex-start; gap: 8px; font-size: 14px;
+  }
+  .phase-check { font-size: 12px; margin-top: 2px; flex-shrink: 0; }
+  .phase-badge {
+    display: inline-block; font-size: 11px; font-weight: 700;
+    padding: 2px 8px; border-radius: 4px; margin-left: 8px; vertical-align: middle;
+  }
+  .badge-db { background: rgba(79,142,247,0.15); color: var(--blue); }
+  .badge-be { background: rgba(167,139,250,0.15); color: var(--purple); }
+  .badge-fe { background: rgba(52,211,153,0.15); color: var(--green); }
+  .badge-ai { background: rgba(245,158,11,0.15); color: var(--orange); }
+
+  /* ── COMPONENT MAP ── */
+  .comp-map {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 32px; overflow-x: auto;
+  }
+  .comp-flow { display: flex; flex-direction: column; gap: 0; min-width: 800px; }
+  .comp-row {
+    display: flex; align-items: center; gap: 0;
+    padding: 4px 0;
+  }
+  .comp-node {
+    border-radius: 8px; padding: 10px 16px;
+    font-size: 13px; font-weight: 600; white-space: nowrap;
+    font-family: 'Fira Code', monospace;
+  }
+  .comp-arrow { color: var(--text3); padding: 0 8px; font-size: 18px; }
+  .comp-indent { width: 40px; flex-shrink: 0; }
+  .comp-comment { font-size: 12px; color: var(--text3); margin-left: 16px; font-style: italic; }
+
+  /* ── RETRY DIAGRAM ── */
+  .retry-flow { display: flex; flex-direction: column; gap: 0; }
+  .retry-row { display: flex; align-items: center; gap: 0; }
+  .retry-node {
+    border-radius: 8px; padding: 12px 20px; font-size: 14px; font-weight: 600;
+    min-width: 180px; text-align: center;
+  }
+  .retry-arrow { display: flex; flex-direction: column; align-items: center; padding: 0 8px; color: var(--text3); }
+  .retry-arrow span { font-size: 11px; white-space: nowrap; }
+  .dedup-box {
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 20px 24px; margin-top: 32px;
+  }
+  .dedup-title { font-size: 16px; font-weight: 700; margin-bottom: 12px; color: var(--orange); }
+  .dedup-rule {
+    background: rgba(245,158,11,0.05); border-left: 3px solid var(--orange);
+    padding: 12px 16px; border-radius: 0 8px 8px 0; font-size: 14px;
+    color: var(--text2); margin-bottom: 8px;
+  }
+
+  /* ── SAFETY RULES ── */
+  .rules-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
+  .rule-card {
+    border-radius: var(--radius); padding: 20px 24px;
+    border: 1px solid; position: relative; overflow: hidden;
+  }
+  .rule-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  }
+  .rule-card.r1 { background: rgba(79,142,247,0.05); border-color: rgba(79,142,247,0.3); }
+  .rule-card.r1::before { background: var(--blue); }
+  .rule-card.r2 { background: rgba(52,211,153,0.05); border-color: rgba(52,211,153,0.3); }
+  .rule-card.r2::before { background: var(--green); }
+  .rule-card.r3 { background: rgba(167,139,250,0.05); border-color: rgba(167,139,250,0.3); }
+  .rule-card.r3::before { background: var(--purple); }
+  .rule-card.r4 { background: rgba(245,158,11,0.05); border-color: rgba(245,158,11,0.3); }
+  .rule-card.r4::before { background: var(--orange); }
+  .rule-card.r5 { background: rgba(248,113,113,0.05); border-color: rgba(248,113,113,0.3); }
+  .rule-card.r5::before { background: var(--red); }
+  .rule-num { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; opacity: 0.7; }
+  .rule-title { font-size: 16px; font-weight: 700; margin-bottom: 8px; }
+  .rule-desc { font-size: 14px; color: var(--text2); line-height: 1.6; }
+
+  /* ── DB SCHEMA ── */
+  .schema-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 16px; }
+  .schema-card {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: var(--radius); overflow: hidden;
+  }
+  .schema-header {
+    padding: 12px 16px; background: var(--bg3);
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .schema-table-name { font-family: monospace; font-size: 14px; font-weight: 700; color: var(--blue); }
+  .schema-badge { font-size: 11px; color: var(--text3); }
+  .schema-cols { padding: 12px 0; }
+  .schema-col { display: flex; gap: 12px; padding: 5px 16px; font-size: 13px; }
+  .schema-col:hover { background: var(--bg3); }
+  .col-name { font-family: monospace; color: var(--text); min-width: 180px; }
+  .col-type { color: var(--purple); font-family: monospace; font-size: 12px; }
+  .col-ai { font-size: 11px; background: rgba(52,211,153,0.15); color: var(--green); padding: 1px 6px; border-radius: 3px; align-self: center; }
+
+  /* misc */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  @media (max-width: 768px) { .two-col { grid-template-columns: 1fr; } }
+  .label-tag {
+    display: inline-block; font-size: 11px; font-weight: 700; padding: 2px 8px;
+    border-radius: 4px; text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  hr.divider { border: none; border-top: 1px solid var(--border); margin: 32px 0; }
+  code {
+    font-family: 'Fira Code', monospace; font-size: 13px;
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: 4px; padding: 2px 7px; color: var(--purple);
+  }
+  .callout {
+    border-radius: var(--radius-sm); padding: 16px 20px;
+    display: flex; gap: 12px; align-items: flex-start; margin: 16px 0;
+  }
+  .callout-icon { font-size: 18px; flex-shrink: 0; }
+  .callout-text { font-size: 14px; color: var(--text2); }
+  .callout.info { background: rgba(79,142,247,0.08); border: 1px solid rgba(79,142,247,0.2); }
+  .callout.warn { background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.2); }
+  .callout.success { background: rgba(52,211,153,0.08); border: 1px solid rgba(52,211,153,0.2); }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-brand">Ask CTK</div>
+  <a href="#overview">Overview</a>
+  <a href="#architecture">Architecture</a>
+  <a href="#dataflow">Data Flow</a>
+  <a href="#integration">10 AI Points</a>
+  <a href="#roadmap">Roadmap</a>
+  <a href="#components">Components</a>
+  <a href="#resilience">Resilience</a>
+  <a href="#schema">DB Schema</a>
+  <a href="#rules">Safety Rules</a>
+</nav>
+
+<!-- HERO -->
+<div class="hero" id="overview">
+  <div class="hero-badge">Invisible AI · Auto Liability Module</div>
+  <h1>Ask <span>CTK</span> Implementation Guide</h1>
+  <p>AI silently enriches claim data in the background. Adjusters save instantly — AI fills in fields seconds later, automatically.</p>
+  <div class="hero-stats">
+    <div class="stat blue">
+      <div class="stat-num">10</div>
+      <div class="stat-label">AI-filled fields</div>
+    </div>
+    <div class="stat green">
+      <div class="stat-num">&lt;1s</div>
+      <div class="stat-label">Adjuster wait time</div>
+    </div>
+    <div class="stat orange">
+      <div class="stat-num">30s</div>
+      <div class="stat-label">Worker poll interval</div>
+    </div>
+    <div class="stat purple">
+      <div class="stat-num">3×</div>
+      <div class="stat-label">Retry attempts</div>
+    </div>
+  </div>
+</div>
+
+<!-- ARCHITECTURE -->
+<div class="section" id="architecture">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-tag">Section 1</div>
+      <div class="section-title">System Architecture</div>
+      <div class="section-desc">Five zones work together. The adjuster's save (blue path) completes in under a second. AI enrichment (green path) happens silently afterward.</div>
+    </div>
+
+    <div class="arch-diagram">
+      <div class="arch-zones">
+
+        <!-- Zone 1 -->
+        <div class="arch-zone">
+          <div class="zone-label" style="border-color:#4f8ef7">
+            <div class="zone-num" style="color:#4f8ef7">Zone 1</div>
+            <div class="zone-name">Adjuster</div>
+            <div class="zone-tech">Browser / CTK Frontend</div>
+          </div>
+          <div class="zone-content">
+            <div class="zone-box zone-blue">Opens Claim Form</div>
+            <div class="zone-arrow">→</div>
+            <div class="zone-box zone-blue">Fills in Data</div>
+            <div class="zone-arrow">→</div>
+            <div class="zone-box zone-blue">Clicks Save</div>
+            <div class="zone-arrow">→</div>
+            <div class="zone-box zone-green">✓ Instant Response</div>
+            <div class="zone-desc" style="width:100%;margin-top:4px">Adjuster never waits for AI — save confirms in &lt;1 second</div>
+          </div>
+        </div>
+
+        <div class="zone-separator">HTTP POST → Web API → HTTP 200</div>
+
+        <!-- Zone 2 -->
+        <div class="arch-zone">
+          <div class="zone-label" style="border-color:#a78bfa">
+            <div class="zone-num" style="color:#a78bfa">Zone 2</div>
+            <div class="zone-name">Web API</div>
+            <div class="zone-tech">.NET 8 · Auto Liability Backend</div>
+          </div>
+          <div class="zone-content">
+            <div class="zone-box zone-purple">Receive Save Request</div>
+            <div class="zone-arrow">→</div>
+            <div class="zone-box zone-purple">Begin Transaction</div>
+            <div class="zone-arrow">→</div>
+            <div class="zone-box zone-purple">Write Claim Data</div>
+            <div class="zone-arrow">→</div>
+            <div class="zone-box zone-purple">Enqueue AI Job</div>
+            <div class="zone-arrow">→</div>
+            <div class="zone-box zone-purple">Commit &amp; Respond</div>
+            <div class="zone-desc" style="width:100%;margin-top:4px">Both the data write and the AI job enqueue happen in ONE transaction — if save fails, no orphan job is created</div>
+          </div>
+        </div>
+
+        <div class="zone-separator">Job row inserted into SQL table</div>
+
+        <!-- Zone 3 -->
+        <div class="arch-zone">
+          <div class="zone-label" style="border-color:#f59e0b">
+            <div class="zone-num" style="color:#f59e0b">Zone 3</div>
+            <div class="zone-name">AI Queue</div>
+            <div class="zone-tech">SQL Server · AutoAskCTKUpdateQueue</div>
+          </div>
+          <div class="zone-content">
+            <div style="flex:1">
+              <div style="margin-bottom:8px;font-size:13px;color:var(--text2)">Job lifecycle states:</div>
+              <div class="status-row">
+                <span class="status-pill status-pending">PENDING</span>
+                <span class="zone-arrow">→</span>
+                <span class="status-pill status-processing">PROCESSING</span>
+                <span class="zone-arrow">→</span>
+                <span class="status-pill status-completed">COMPLETED</span>
+              </div>
+              <div class="status-row" style="margin-top:6px">
+                <span class="status-pill status-processing">PROCESSING</span>
+                <span class="zone-arrow">→</span>
+                <span class="status-pill status-retry">RETRY</span>
+                <span class="zone-arrow">→</span>
+                <span class="status-pill status-failed">FAILED</span>
+              </div>
+              <div style="margin-top:12px;font-size:12px;color:var(--text3)">Dedup guard prevents duplicate jobs for the same record+type</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="zone-separator">Worker polls every 30 seconds</div>
+
+        <!-- Zone 4 -->
+        <div class="arch-zone">
+          <div class="zone-label" style="border-color:#f59e0b">
+            <div class="zone-num" style="color:#f59e0b">Zone 4</div>
+            <div class="zone-name">Background Worker</div>
+            <div class="zone-tech">.NET HostedService · 30s poll</div>
+          </div>
+          <div class="zone-content">
+            <div class="zone-box zone-orange">Claim Job (UPDLOCK)</div>
+            <div class="zone-arrow">→</div>
+            <div class="zone-box zone-orange">Set Tenant Context</div>
+            <div class="zone-arrow">→</div>
+            <div class="zone-box zone-orange">Build Context</div>
+            <div class="zone-arrow">→</div>
+            <div class="zone-box zone-orange">Render Prompt</div>
+            <div class="zone-arrow">→</div>
+            <div class="zone-box zone-orange">Call AI API</div>
+            <div class="zone-arrow">→</div>
+            <div class="zone-box zone-green">Write Result</div>
+          </div>
+        </div>
+
+        <div class="zone-separator">HTTP POST /ai/complete → returns AI text</div>
+
+        <!-- Zone 5 -->
+        <div class="arch-zone">
+          <div class="zone-label" style="border-color:#a78bfa">
+            <div class="zone-num" style="color:#a78bfa">Zone 5</div>
+            <div class="zone-name">AI Server</div>
+            <div class="zone-tech">ctk-mcp-nls · FastAPI · Gemini</div>
+          </div>
+          <div class="zone-content">
+            <div class="zone-box zone-purple">Validate Service Key</div>
+            <div class="zone-arrow">→</div>
+            <div class="zone-box zone-purple">System + User Message</div>
+            <div class="zone-arrow">→</div>
+            <div class="zone-box zone-purple">Gemini LLM</div>
+            <div class="zone-arrow">→</div>
+            <div class="zone-box zone-green">Return AI Text</div>
+            <div class="zone-desc" style="width:100%;margin-top:4px">Auth via X-Service-Key header. Existing endpoints: /claims/generate-summary · /claims/party-duty-summary · /claims/overall-duty-summary</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="callout info" style="margin-top:24px">
+      <div class="callout-icon">💡</div>
+      <div class="callout-text"><strong>Key insight:</strong> Zones 1–2 happen synchronously in the user's request (&lt;1s). Zones 4–5 happen asynchronously in a background thread. Zone 3 (the queue) is the bridge — it decouples user speed from AI speed completely.</div>
+    </div>
+  </div>
+</div>
+
+<!-- DATA FLOW -->
+<div class="section" id="dataflow">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-tag">Section 2</div>
+      <div class="section-title">Complete Data Flow</div>
+      <div class="section-desc">Step-by-step trace from adjuster click to AI result written in the database. Two distinct paths: the user's save path and the background AI path.</div>
+    </div>
+
+    <div style="overflow-x:auto">
+    <table class="flow-table">
+      <thead>
+        <tr>
+          <th style="width:60px">#</th>
+          <th style="width:160px">Zone</th>
+          <th>What Happens</th>
+          <th style="width:120px">Code Location</th>
+          <th style="width:90px">Timing</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="section-row">
+          <td colspan="5" style="color:var(--blue);font-weight:700;font-size:12px;letter-spacing:1px;text-transform:uppercase">
+            🔵 USER SAVE PATH — completes in &lt;1 second
+          </td>
+        </tr>
+        <tr>
+          <td><div class="flow-step" style="background:var(--blue-dim);border:2px solid var(--blue);color:var(--blue)">1</div></td>
+          <td><span class="flow-zone-tag" style="background:var(--blue-dim);color:var(--blue)">Adjuster</span></td>
+          <td>Adjuster fills out party statement form and clicks <strong>Save</strong>. Frontend sends <code>PUT /api/facts/{id}</code></td>
+          <td><code>FactsController</code></td>
+          <td><span class="flow-time" style="color:var(--blue)">t=0ms</span></td>
+        </tr>
+        <tr>
+          <td><div class="flow-step" style="background:var(--purple-dim);border:2px solid var(--purple);color:var(--purple)">2</div></td>
+          <td><span class="flow-zone-tag" style="background:var(--purple-dim);color:var(--purple)">Web API</span></td>
+          <td><strong>Begin transaction.</strong> <code>FactsService.UpdateFactAsync(dto, userId, companyId)</code> opens a DB transaction</td>
+          <td><code>FactsService</code></td>
+          <td><span class="flow-time" style="color:var(--purple)">t=2ms</span></td>
+        </tr>
+        <tr>
+          <td><div class="flow-step" style="background:var(--purple-dim);border:2px solid var(--purple);color:var(--purple)">3</div></td>
+          <td><span class="flow-zone-tag" style="background:var(--purple-dim);color:var(--purple)">Web API</span></td>
+          <td><strong>Write claim data.</strong> <code>uow.Facts.UpdateFactAsync(dto)</code> — saves the adjuster's input to <code>dbo.Facts</code></td>
+          <td><code>FactsRepository</code></td>
+          <td><span class="flow-time" style="color:var(--purple)">t=5ms</span></td>
+        </tr>
+        <tr>
+          <td><div class="flow-step" style="background:var(--orange-dim);border:2px solid var(--orange);color:var(--orange)">4</div></td>
+          <td><span class="flow-zone-tag" style="background:var(--orange-dim);color:var(--orange)">Queue</span></td>
+          <td><strong>Enqueue AI job.</strong> <code>uow.AskCtkQueue.EnqueueAsync(...)</code> — inserts PENDING row into <code>AutoAskCTKUpdateQueue</code>. Dedup guard: if a PENDING/PROCESSING/RETRY job for same claim+type already exists, skip. <code>NotBeforeAt = now + 60s</code> (debounce)</td>
+          <td><code>AskCtkQueueRepository</code></td>
+          <td><span class="flow-time" style="color:var(--orange)">t=8ms</span></td>
+        </tr>
+        <tr>
+          <td><div class="flow-step" style="background:var(--purple-dim);border:2px solid var(--purple);color:var(--purple)">5</div></td>
+          <td><span class="flow-zone-tag" style="background:var(--purple-dim);color:var(--purple)">Web API</span></td>
+          <td><strong>Commit transaction.</strong> Both the Facts write and the queue insert commit together atomically — if either fails, both roll back</td>
+          <td><code>FactsService</code></td>
+          <td><span class="flow-time" style="color:var(--purple)">t=12ms</span></td>
+        </tr>
+        <tr>
+          <td><div class="flow-step" style="background:var(--blue-dim);border:2px solid var(--blue);color:var(--blue)">6</div></td>
+          <td><span class="flow-zone-tag" style="background:var(--blue-dim);color:var(--blue)">Adjuster</span></td>
+          <td>API returns <strong>HTTP 200 OK</strong>. Adjuster sees save confirmation immediately. They can keep working — AI runs in the background</td>
+          <td><code>FactsController</code></td>
+          <td><span class="flow-time" style="color:var(--green)">&lt;1s ✓</span></td>
+        </tr>
+
+        <tr class="section-row">
+          <td colspan="5" style="color:var(--orange);font-weight:700;font-size:12px;letter-spacing:1px;text-transform:uppercase">
+            🟠 BACKGROUND AI PATH — runs 60+ seconds later
+          </td>
+        </tr>
+        <tr>
+          <td><div class="flow-step" style="background:var(--orange-dim);border:2px solid var(--orange);color:var(--orange)">7</div></td>
+          <td><span class="flow-zone-tag" style="background:var(--orange-dim);color:var(--orange)">Worker</span></td>
+          <td><strong>Worker wakes up</strong> every 30 seconds. <code>ProcessAskCtkQueueService</code> polls for PENDING jobs where <code>NotBeforeAt &lt;= now</code>. Creates fresh DI scope per tick</td>
+          <td><code>ProcessAskCtkQueueService</code></td>
+          <td><span class="flow-time" style="color:var(--orange)">t=60s+</span></td>
+        </tr>
+        <tr>
+          <td><div class="flow-step" style="background:var(--orange-dim);border:2px solid var(--orange);color:var(--orange)">8</div></td>
+          <td><span class="flow-zone-tag" style="background:var(--orange-dim);color:var(--orange)">Worker</span></td>
+          <td><strong>Claim next job atomically.</strong> <code>UPDATE TOP(1) WITH (UPDLOCK, READPAST, ROWLOCK)</code> — sets Status=PROCESSING, locks the row so no other worker can take it. Returns job details via OUTPUT INSERTED</td>
+          <td><code>AskCtkQueueRepository.ClaimNextAsync</code></td>
+          <td></td>
+        </tr>
+        <tr>
+          <td><div class="flow-step" style="background:var(--orange-dim);border:2px solid var(--orange);color:var(--orange)">9</div></td>
+          <td><span class="flow-zone-tag" style="background:var(--orange-dim);color:var(--orange)">Worker</span></td>
+          <td><strong>Set tenant context.</strong> <code>HttpTenantProvider.SetTenantId(job.CompanyId)</code> — CRITICAL: background worker has no HTTP request, must manually tell the DB context which company DB to use</td>
+          <td><code>AskCtkJobProcessor</code></td>
+          <td></td>
+        </tr>
+        <tr>
+          <td><div class="flow-step" style="background:var(--orange-dim);border:2px solid var(--orange);color:var(--orange)">10</div></td>
+          <td><span class="flow-zone-tag" style="background:var(--orange-dim);color:var(--orange)">Worker</span></td>
+          <td><strong>Load prompt.</strong> <code>PromptRepository.ResolveAsync(job.PromptTypeKey, job.CompanyId)</code> — company-override-wins resolution. If company has its own prompt version, use it; else use default</td>
+          <td><code>AskCtkJobProcessor</code></td>
+          <td></td>
+        </tr>
+        <tr>
+          <td><div class="flow-step" style="background:var(--orange-dim);border:2px solid var(--orange);color:var(--orange)">11</div></td>
+          <td><span class="flow-zone-tag" style="background:var(--orange-dim);color:var(--orange)">Worker</span></td>
+          <td><strong>Build claim context.</strong> <code>StatementContextBuilder.BuildStatementContextAsync(factsId, toolkitId, companyId)</code> — loads Facts + AutoParty + Claim data. Replace <code>&#123;&#123;placeholders&#125;&#125;</code> in prompt text with actual claim values</td>
+          <td><code>StatementContextBuilder</code></td>
+          <td></td>
+        </tr>
+        <tr>
+          <td><div class="flow-step" style="background:var(--purple-dim);border:2px solid var(--purple);color:var(--purple)">12</div></td>
+          <td><span class="flow-zone-tag" style="background:var(--purple-dim);color:var(--purple)">AI Server</span></td>
+          <td><strong>Call AI.</strong> <code>AskCtkMcpClient.CompleteAsync(request)</code> → HTTP POST to <code>ctk-mcp-nls/ai/complete</code> with <code>X-Service-Key</code> header. Gemini processes the structured prompt and returns text</td>
+          <td><code>AskCtkMcpClient</code></td>
+          <td><span class="flow-time" style="color:var(--purple)">2–10s</span></td>
+        </tr>
+        <tr>
+          <td><div class="flow-step" style="background:var(--green-dim);border:2px solid var(--green);color:var(--green)">13</div></td>
+          <td><span class="flow-zone-tag" style="background:var(--green-dim);color:var(--green)">Worker</span></td>
+          <td><strong>Write AI result.</strong> <code>AiResultWriterRegistry</code> finds the right writer for the job type → <code>StatementSummaryWriter.WriteAsync(...)</code> → <code>UPDATE dbo.Facts SET AiSummary=@text, AiSummaryAt=now, AiSummarySource='ASK_CTK'</code></td>
+          <td><code>StatementSummaryWriter</code></td>
+          <td></td>
+        </tr>
+        <tr>
+          <td><div class="flow-step" style="background:var(--green-dim);border:2px solid var(--green);color:var(--green)">14</div></td>
+          <td><span class="flow-zone-tag" style="background:var(--green-dim);color:var(--green)">Queue</span></td>
+          <td><strong>Mark complete.</strong> Job → COMPLETED. Write audit row to <code>AskCtk_AuditLog</code>. Next time adjuster opens the claim, the AI summary badge appears with the generated text</td>
+          <td><code>AskCtkQueueRepository.CompleteAsync</code></td>
+          <td><span class="flow-time" style="color:var(--green)">Done ✓</span></td>
+        </tr>
+      </tbody>
+    </table>
+    </div>
+  </div>
+</div>
+
+<!-- 10 INTEGRATION POINTS -->
+<div class="section" id="integration">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-tag">Section 3</div>
+      <div class="section-title">The 10 AI Integration Points</div>
+      <div class="section-desc">Every page in Auto Liability where AI automatically fills in data. Each card shows: what page it's on, what AI writes, what data it reads, and what event triggers it.</div>
+    </div>
+
+    <!-- Group 1: Claim Info -->
+    <div class="domain-group">
+      <div class="domain-title">
+        <span class="zone-box zone-blue" style="font-size:11px;padding:3px 10px">Claim Info</span>
+        Points 1–2 <span class="domain-count">2 fields</span>
+      </div>
+      <div class="int-grid">
+
+        <div class="int-card">
+          <div class="int-num">1</div>
+          <div class="int-page">Location, Details &amp; Types</div>
+          <div class="int-section">Location Context Enrichment</div>
+          <div class="int-fills">
+            <div class="int-fills-label">AI Fills These Fields</div>
+            <div class="int-fill-item">Speed Limit <code>Claim.SpeedLimit</code></div>
+            <div class="int-fill-item">Weather Conditions (Rain/Snow/Fog booleans)</div>
+            <div class="int-fill-item">Area Risk Factors (School Zone, Construction…)</div>
+            <div class="int-fill-item">Area Type <code>Claim.AreaType</code></div>
+            <div class="int-fill-item">Lighting Conditions <code>Claim.LightingConditions</code></div>
+          </div>
+          <div class="int-meta">
+            <div class="int-meta-row"><span class="int-meta-key">Reads</span><span class="int-meta-val">Loss location address + Date &amp; Time of loss</span></div>
+            <div class="int-meta-row"><span class="int-meta-key">Trigger</span><span class="int-meta-val"><code>ClaimService.UpdateClaimFullAsync</code></span></div>
+            <div class="int-meta-row"><span class="int-meta-key">Key</span><code>LOCATION_ENRICHMENT</code></div>
+          </div>
+        </div>
+
+        <div class="int-card">
+          <div class="int-num">2</div>
+          <div class="int-page">Claim Summary</div>
+          <div class="int-section">Auto Generate Claim Summary</div>
+          <div class="int-fills">
+            <div class="int-fills-label">AI Fills These Fields</div>
+            <div class="int-fill-item">Full claim narrative summary <code>AiClaimSummary</code></div>
+          </div>
+          <div class="int-meta">
+            <div class="int-meta-row"><span class="int-meta-key">Reads</span><span class="int-meta-val">All parties, all statements, assessment details, loss date/location</span></div>
+            <div class="int-meta-row"><span class="int-meta-key">Trigger</span><span class="int-meta-val">After party or facts save (re-enqueues on any update)</span></div>
+            <div class="int-meta-row"><span class="int-meta-key">Key</span><code>CLAIM_SUMMARY</code></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Group 2: Investigation -->
+    <div class="domain-group">
+      <div class="domain-title">
+        <span class="zone-box zone-orange" style="font-size:11px;padding:3px 10px">Investigation</span>
+        Point 3 <span class="domain-count">1 field</span>
+      </div>
+      <div class="int-grid">
+
+        <div class="int-card">
+          <div class="int-num">3</div>
+          <div class="int-page">Investigation Checklist</div>
+          <div class="int-section">Legal Summary</div>
+          <div class="int-fills">
+            <div class="int-fills-label">AI Fills These Fields</div>
+            <div class="int-fill-item">Legal summary text block <code>AiLegalSummary</code></div>
+          </div>
+          <div class="int-meta">
+            <div class="int-meta-row"><span class="int-meta-key">Reads</span><span class="int-meta-val">Completed checklist items, state law reference (SOP, ROW rules), investigation session data</span></div>
+            <div class="int-meta-row"><span class="int-meta-key">Trigger</span><span class="int-meta-val"><code>AutoClaimChecklistService.SaveChecklistAsync</code></span></div>
+            <div class="int-meta-row"><span class="int-meta-key">Key</span><code>LEGAL_SUMMARY</code></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Group 3: Assessment -->
+    <div class="domain-group">
+      <div class="domain-title">
+        <span class="zone-box zone-purple" style="font-size:11px;padding:3px 10px">Assessment</span>
+        Points 4–9 <span class="domain-count">6 fields</span>
+      </div>
+      <div class="int-grid">
+
+        <div class="int-card">
+          <div class="int-num">4</div>
+          <div class="int-page">Assessment — Suggested Assessment</div>
+          <div class="int-section">Point of Impact</div>
+          <div class="int-fills">
+            <div class="int-fills-label">AI Fills These Fields</div>
+            <div class="int-fill-item">Point of impact description <code>Assessment.AiPointOfImpact</code></div>
+          </div>
+          <div class="int-meta">
+            <div class="int-meta-row"><span class="int-meta-key">Reads</span><span class="int-meta-val">Scene diagram data, party positions, vehicle descriptions</span></div>
+            <div class="int-meta-row"><span class="int-meta-key">Trigger</span><span class="int-meta-val">Scene save / scene creation</span></div>
+            <div class="int-meta-row"><span class="int-meta-key">Key</span><code>POINT_OF_IMPACT</code></div>
+          </div>
+        </div>
+
+        <div class="int-card">
+          <div class="int-num">5</div>
+          <div class="int-page">Assessment — Actual Assessment</div>
+          <div class="int-section">Overall Duty Breach Summary</div>
+          <div class="int-fills">
+            <div class="int-fills-label">AI Fills These Fields</div>
+            <div class="int-fill-item">Overall summary of all evidence of duty breaches <code>Assessment.AiOverallDutyBreachSummary</code></div>
+          </div>
+          <div class="int-meta">
+            <div class="int-meta-row"><span class="int-meta-key">Reads</span><span class="int-meta-val">All 4 duty types (ROW, Speed, Lookout, Avoidance) for all parties</span></div>
+            <div class="int-meta-row"><span class="int-meta-key">Trigger</span><span class="int-meta-val">When all evidence of duty breaches collected</span></div>
+            <div class="int-meta-row"><span class="int-meta-key">Key</span><code>DUTY_BREACH_OVERALL</code></div>
+          </div>
+        </div>
+
+        <div class="int-card">
+          <div class="int-num">6</div>
+          <div class="int-page">Assessment — Actual Assessment</div>
+          <div class="int-section">Right of Way Duties — Parties Summary</div>
+          <div class="int-fills">
+            <div class="int-fills-label">AI Fills These Fields</div>
+            <div class="int-fill-item">ROW duty summary for all parties <code>Assessment.AiRightOfWaySummary</code></div>
+          </div>
+          <div class="int-meta">
+            <div class="int-meta-row"><span class="int-meta-key">Reads</span><span class="int-meta-val">Each party's statement regarding right of way, traffic control, location</span></div>
+            <div class="int-meta-row"><span class="int-meta-key">Trigger</span><span class="int-meta-val">Party added to claim</span></div>
+            <div class="int-meta-row"><span class="int-meta-key">Key</span><code>ROW_PARTY_SUMMARY</code></div>
+          </div>
+        </div>
+
+        <div class="int-card">
+          <div class="int-num">7</div>
+          <div class="int-page">Assessment — Actual Assessment</div>
+          <div class="int-section">Speed Duties Breached — Parties Summary</div>
+          <div class="int-fills">
+            <div class="int-fills-label">AI Fills These Fields</div>
+            <div class="int-fill-item">Speed duty breach summary for all parties <code>Assessment.AiSpeedDutySummary</code></div>
+          </div>
+          <div class="int-meta">
+            <div class="int-meta-row"><span class="int-meta-key">Reads</span><span class="int-meta-val">Each party's speed at time of loss, speed limit, road conditions</span></div>
+            <div class="int-meta-row"><span class="int-meta-key">Trigger</span><span class="int-meta-val">Party added to claim</span></div>
+            <div class="int-meta-row"><span class="int-meta-key">Key</span><code>SPEED_PARTY_SUMMARY</code></div>
+          </div>
+        </div>
+
+        <div class="int-card">
+          <div class="int-num">8</div>
+          <div class="int-page">Assessment — Actual Assessment</div>
+          <div class="int-section">Look Out Duties Breached — Parties Summary</div>
+          <div class="int-fills">
+            <div class="int-fills-label">AI Fills These Fields</div>
+            <div class="int-fill-item">Lookout duty breach summary for all parties <code>Assessment.AiLookoutDutySummary</code></div>
+          </div>
+          <div class="int-meta">
+            <div class="int-meta-row"><span class="int-meta-key">Reads</span><span class="int-meta-key">Each party's described lookout action (or lack thereof), obstructions</span></div>
+            <div class="int-meta-row"><span class="int-meta-key">Trigger</span><span class="int-meta-val">Party added to claim</span></div>
+            <div class="int-meta-row"><span class="int-meta-key">Key</span><code>LOOKOUT_PARTY_SUMMARY</code></div>
+          </div>
+        </div>
+
+        <div class="int-card">
+          <div class="int-num">9</div>
+          <div class="int-page">Assessment — Actual Assessment</div>
+          <div class="int-section">Avoidance Duties Breached — Parties Summary</div>
+          <div class="int-fills">
+            <div class="int-fills-label">AI Fills These Fields</div>
+            <div class="int-fill-item">Avoidance duty breach summary for all parties <code>Assessment.AiAvoidanceDutySummary</code></div>
+          </div>
+          <div class="int-meta">
+            <div class="int-meta-row"><span class="int-meta-key">Reads</span><span class="int-meta-val">Each party's avoidance actions, braking, evasive maneuvers described</span></div>
+            <div class="int-meta-row"><span class="int-meta-key">Trigger</span><span class="int-meta-val">Party added to claim</span></div>
+            <div class="int-meta-row"><span class="int-meta-key">Key</span><code>AVOIDANCE_PARTY_SUMMARY</code></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Group 4: Negotiation -->
+    <div class="domain-group">
+      <div class="domain-title">
+        <span class="zone-box zone-green" style="font-size:11px;padding:3px 10px">Negotiation</span>
+        Point 10 <span class="domain-count">1 field</span>
+      </div>
+      <div class="int-grid">
+
+        <div class="int-card">
+          <div class="int-num">10</div>
+          <div class="int-page">Negotiation &amp; Settlement — Evidence of Duty Breaches</div>
+          <div class="int-section">Both Drivers' ROW Summary</div>
+          <div class="int-fills">
+            <div class="int-fills-label">AI Fills These Fields</div>
+            <div class="int-fill-item">Driver 1 right of way summary <code>AutoAssessmentEvidences.AiRowEvidenceSummary</code></div>
+            <div class="int-fill-item">Driver 2 right of way summary (same column, per party)</div>
+          </div>
+          <div class="int-meta">
+            <div class="int-meta-row"><span class="int-meta-key">Reads</span><span class="int-meta-val">Both drivers' statements, ROW duty analysis, assessment findings</span></div>
+            <div class="int-meta-row"><span class="int-meta-key">Trigger</span><span class="int-meta-val"><code>AutoLiaService.InsertAssesmentEvidancesAsync</code></span></div>
+            <div class="int-meta-row"><span class="int-meta-key">Key</span><code>ROW_EVIDENCE_SUMMARY</code></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- PHASE ROADMAP -->
+<div class="section" id="roadmap">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-tag">Section 4</div>
+      <div class="section-title">Implementation Roadmap</div>
+      <div class="section-desc">9 phases from database setup to full end-to-end. Each phase builds on the previous. Phase 1–3 establish the complete pipeline; later phases plug in new AI functions.</div>
+    </div>
+
+    <div class="roadmap">
+      <div class="roadmap-line"></div>
+
+      <div class="phase-item">
+        <div class="phase-dot" style="color:var(--blue);border-color:var(--blue)">1</div>
+        <div class="phase-content">
+          <div class="phase-title">Database DDL <span class="phase-badge badge-db">Database</span></div>
+          <div class="phase-subtitle">Run once on DEV + all PROD customer DBs. Additive &amp; idempotent (IF NOT EXISTS guards).</div>
+          <div class="phase-items">
+            <div class="phase-item-row"><span class="phase-check" style="color:var(--blue)">□</span>Create <code>dbo.AutoAskCTKUpdateQueue</code> table + 2 indexes</div>
+            <div class="phase-item-row"><span class="phase-check" style="color:var(--blue)">□</span>Create <code>dbo.AskCtk_AuditLog</code> table</div>
+            <div class="phase-item-row"><span class="phase-check" style="color:var(--blue)">□</span>ALTER <code>AskCtk_Prompt_Type</code> — add AI metadata columns</div>
+            <div class="phase-item-row"><span class="phase-check" style="color:var(--blue)">□</span>Seed <code>STATEMENT_SUMMARY</code> prompt type + default prompt text</div>
+            <div class="phase-item-row"><span class="phase-check" style="color:var(--blue)">□</span>ALTER <code>dbo.Facts</code> — add AiSummary, AiSummaryAt, AiSummarySource</div>
+            <div class="phase-item-row"><span class="phase-check" style="color:var(--blue)">□</span>ALTER <code>dbo.Assessment</code> — add 6 Ai* columns for duty summaries</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="phase-item">
+        <div class="phase-dot" style="color:var(--purple);border-color:var(--purple)">2</div>
+        <div class="phase-content">
+          <div class="phase-title">Queue Infrastructure <span class="phase-badge badge-be">Backend</span></div>
+          <div class="phase-subtitle">Build the queue plumbing — repository, UnitOfWork wire-up, DTOs.</div>
+          <div class="phase-items">
+            <div class="phase-item-row"><span class="phase-check" style="color:var(--purple)">□</span>Create <code>CTK.Common\DTOs\AskCtk\AskCtkDtos.cs</code> (EnqueueJobRequest, QueuedJobDto, AiCompleteRequest/Response, StatementContextDto)</div>
+            <div class="phase-item-row"><span class="phase-check" style="color:var(--purple)">□</span>Create <code>CTK.Core\Interfaces\IAskCtkQueueRepository.cs</code></div>
+            <div class="phase-item-row"><span class="phase-check" style="color:var(--purple)">□</span>Create <code>CTK.Infrastructure\Repositories\AskCtkQueueRepository.cs</code> (EnqueueAsync with dedup, ClaimNextAsync with UPDLOCK, CompleteAsync, FailAsync, WriteAuditAsync)</div>
+            <div class="phase-item-row"><span class="phase-check" style="color:var(--purple)">□</span>Edit <code>IUnitOfWork.cs</code> — add <code>IAskCtkQueueRepository AskCtkQueue</code></div>
+            <div class="phase-item-row"><span class="phase-check" style="color:var(--purple)">□</span>Edit <code>UnitOfWork.cs</code> — add field, lazy property, null reset in BeginAsync()</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="phase-item">
+        <div class="phase-dot" style="color:var(--orange);border-color:var(--orange)">3</div>
+        <div class="phase-content">
+          <div class="phase-title">Increment 1 — Statement Summary Pipeline <span class="phase-badge badge-be">Backend</span></div>
+          <div class="phase-subtitle">The full end-to-end pipeline for the first AI function. Proves every piece works together.</div>
+          <div class="phase-items">
+            <div class="phase-item-row"><span class="phase-check" style="color:var(--orange)">□</span>Edit <code>IFactsService.cs</code> — add companyId param to UpdateFactAsync</div>
+            <div class="phase-item-row"><span class="phase-check" style="color:var(--orange)">□</span>Edit <code>FactsService.cs</code> — wrap in transaction + enqueue (currently has no transaction at line 125–132)</div>
+            <div class="phase-item-row"><span class="phase-check" style="color:var(--orange)">□</span>Edit <code>FactsController.cs</code> — pass CurrentUser.CompanyId to service</div>
+            <div class="phase-item-row"><span class="phase-check" style="color:var(--orange)">□</span>Create <code>IClaimContextBuilder.cs</code> + <code>StatementContextBuilder.cs</code> (loads Facts + Party + Claim context)</div>
+            <div class="phase-item-row"><span class="phase-check" style="color:var(--orange)">□</span>Edit <code>IFactsRepository.cs</code> + <code>FactsRepository.cs</code> — add GetStatementContextAsync</div>
+            <div class="phase-item-row"><span class="phase-check" style="color:var(--orange)">□</span>Create <code>IAskCtkAiClient.cs</code> + <code>MockAskCtkAiClient.cs</code> (mock for testing)</div>
+            <div class="phase-item-row"><span class="phase-check" style="color:var(--orange)">□</span>Create <code>AskCtkMcpClient.cs</code> (real HTTP client to ctk-mcp-nls)</div>
+            <div class="phase-item-row"><span class="phase-check" style="color:var(--orange)">□</span>Create <code>IAiResultWriter.cs</code> + <code>StatementSummaryWriter.cs</code> (writes to Facts.AiSummary)</div>
+            <div class="phase-item-row"><span class="phase-check" style="color:var(--orange)">□</span>Create <code>IAiResultWriterRegistry.cs</code> + <code>AiResultWriterRegistry.cs</code></div>
+            <div class="phase-item-row"><span class="phase-check" style="color:var(--orange)">□</span>Create <code>AskCtkJobProcessor.cs</code> (orchestrates steps 9–13 from data flow)</div>
+            <div class="phase-item-row"><span class="phase-check" style="color:var(--orange)">□</span>Create <code>ProcessAskCtkQueueService.cs</code> hosted background service (30s poll)</div>
+            <div class="phase-item-row"><span class="phase-check" style="color:var(--orange)">□</span>Register all new services in ApplicationExtensions.cs + InfrastructureExtensions.cs</div>
+            <div class="phase-item-row"><span class="phase-check" style="color:var(--orange)">□</span>Add <code>AskCtk</code> config block to appsettings.json (ServiceKey, UseMockAiClient, McpBaseUrl)</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="phase-item">
+        <div class="phase-dot" style="color:var(--purple);border-color:var(--purple)">4</div>
+        <div class="phase-content">
+          <div class="phase-title">MCP Server Endpoint <span class="phase-badge badge-ai">Python / AI</span></div>
+          <div class="phase-subtitle">Add generic stateless AI endpoint to ctk-mcp-nls for worker calls.</div>
+          <div class="phase-items">
+            <div class="phase-item-row"><span class="phase-check" style="color:var(--purple)">□</span>Add <code>POST /ai/complete</code> to <code>ctk-mcp-nls/main.py</code> (Pydantic models + X-Service-Key auth)</div>
+            <div class="phase-item-row"><span class="phase-check" style="color:var(--purple)">□</span>Add <code>ASKCTK_SERVICE_KEY</code> to <code>.env</code> (must match backend config)</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="phase-item">
+        <div class="phase-dot" style="color:var(--blue);border-color:var(--blue)">5</div>
+        <div class="phase-content">
+          <div class="phase-title">Assessment Duty Summaries (Points 5–9) <span class="phase-badge badge-be">Backend</span></div>
+          <div class="phase-subtitle">Plug in 5 new AI functions. Same pipeline — just new Writers and new save hooks.</div>
+          <div class="phase-items">
+            <div class="phase-item-row"><span class="phase-check" style="color:var(--blue)">□</span>Add enqueue hook to <code>AutoPartyService</code> when party is added — triggers ROW, Speed, Lookout, Avoidance summaries</div>
+            <div class="phase-item-row"><span class="phase-check" style="color:var(--blue)">□</span>Add enqueue hook to <code>AutoLiaService.UpdateFullAssessmentAsync</code> — triggers overall duty breach summary</div>
+            <div class="phase-item-row"><span class="phase-check" style="color:var(--blue)">□</span>Create 5 new Writer classes (one per duty type)</div>
+            <div class="phase-item-row"><span class="phase-check" style="color:var(--blue)">□</span>Register new prompt types + default prompts in schema.sql</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="phase-item">
+        <div class="phase-dot" style="color:var(--blue);border-color:var(--blue)">6</div>
+        <div class="phase-content">
+          <div class="phase-title">Location Enrichment + Claim Summary (Points 1–2) <span class="phase-badge badge-be">Backend</span></div>
+          <div class="phase-subtitle">AI enriches claim location data and generates the full claim narrative.</div>
+          <div class="phase-items">
+            <div class="phase-item-row"><span class="phase-check" style="color:var(--blue)">□</span>Add enqueue hook to <code>ClaimService.UpdateClaimFullAsync</code> — triggers LOCATION_ENRICHMENT</div>
+            <div class="phase-item-row"><span class="phase-check" style="color:var(--blue)">□</span>Add enqueue hook after party/facts save — triggers CLAIM_SUMMARY</div>
+            <div class="phase-item-row"><span class="phase-check" style="color:var(--blue)">□</span>Create LocationEnrichmentWriter + ClaimSummaryWriter</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="phase-item">
+        <div class="phase-dot" style="color:var(--blue);border-color:var(--blue)">7</div>
+        <div class="phase-content">
+          <div class="phase-title">Legal Summary + Evidence Summaries (Points 3, 10) <span class="phase-badge badge-be">Backend</span></div>
+          <div class="phase-subtitle">Checklist legal summary and negotiation evidence summaries.</div>
+          <div class="phase-items">
+            <div class="phase-item-row"><span class="phase-check" style="color:var(--blue)">□</span>Add enqueue hook to <code>AutoClaimChecklistService.SaveChecklistAsync</code></div>
+            <div class="phase-item-row"><span class="phase-check" style="color:var(--blue)">□</span>Add enqueue hook to <code>AutoLiaService.InsertAssesmentEvidancesAsync</code></div>
+            <div class="phase-item-row"><span class="phase-check" style="color:var(--blue)">□</span>Create LegalSummaryWriter + RowEvidenceSummaryWriter</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="phase-item">
+        <div class="phase-dot" style="color:var(--green);border-color:var(--green)">8</div>
+        <div class="phase-content">
+          <div class="phase-title">Frontend AI Badges + Regenerate Buttons <span class="phase-badge badge-fe">Frontend</span></div>
+          <div class="phase-subtitle">Adjusters can see AI output inline and request regeneration with one click.</div>
+          <div class="phase-items">
+            <div class="phase-item-row"><span class="phase-check" style="color:var(--green)">□</span>Extend Facts GET response types to include AiSummary + AiSummaryAt</div>
+            <div class="phase-item-row"><span class="phase-check" style="color:var(--green)">□</span>Add AIStatusBadge component to statement view (shows text + relative time)</div>
+            <div class="phase-item-row"><span class="phase-check" style="color:var(--green)">□</span>Add Regenerate button — re-calls existing save endpoint (re-enqueues, no new API needed)</div>
+            <div class="phase-item-row"><span class="phase-check" style="color:var(--green)">□</span>Extend Assessment view with duty summary badges (Points 5–9)</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="phase-item">
+        <div class="phase-dot" style="color:var(--green);border-color:var(--green)">9</div>
+        <div class="phase-content">
+          <div class="phase-title">End-to-End Verification <span class="phase-badge badge-be">Testing</span></div>
+          <div class="phase-subtitle">Verify every piece of the pipeline works in DEV before PROD deployment.</div>
+          <div class="phase-items">
+            <div class="phase-item-row"><span class="phase-check" style="color:var(--green)">□</span>Save statement → confirm PENDING row in queue with NotBeforeAt ~60s ahead</div>
+            <div class="phase-item-row"><span class="phase-check" style="color:var(--green)">□</span>Save again within 30s → confirm dedup guard prevents duplicate job</div>
+            <div class="phase-item-row"><span class="phase-check" style="color:var(--green)">□</span>Wait 30s worker tick → verify job moves PENDING→PROCESSING→COMPLETED</div>
+            <div class="phase-item-row"><span class="phase-check" style="color:var(--green)">□</span>Confirm <code>Facts.AiSummary</code> populated + audit row in <code>AskCtk_AuditLog</code></div>
+            <div class="phase-item-row"><span class="phase-check" style="color:var(--green)">□</span>Set UseMockAiClient=false → verify real Gemini text appears</div>
+            <div class="phase-item-row"><span class="phase-check" style="color:var(--green)">□</span>Stop ctk-mcp-nls → verify retry schedule fires at +1min, +5min, +15min, then FAILED</div>
+            <div class="phase-item-row"><span class="phase-check" style="color:var(--green)">□</span>Frontend: AI badge renders, Regenerate button re-triggers enrichment</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- COMPONENT MAP -->
+<div class="section" id="components">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-tag">Section 5</div>
+      <div class="section-title">Technical Component Map</div>
+      <div class="section-desc">Every class involved and how they connect. Read top to bottom: user request enters at the controller, flows through service and queue, then the background worker picks it up.</div>
+    </div>
+
+    <div class="comp-map">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:32px;min-width:700px">
+
+        <div>
+          <div style="font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--blue);margin-bottom:16px">USER SAVE PATH (Sync)</div>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <div style="display:flex;align-items:center;gap:8px">
+              <div class="comp-node zone-blue" style="min-width:200px">FactsController</div>
+              <div class="comp-comment">passes companyId</div>
+            </div>
+            <div style="padding-left:16px;color:var(--text3)">↓ calls</div>
+            <div style="display:flex;align-items:center;gap:8px">
+              <div class="comp-node zone-purple" style="min-width:200px">FactsService</div>
+              <div class="comp-comment">wraps in transaction</div>
+            </div>
+            <div style="padding-left:16px;color:var(--text3)">↓ uses</div>
+            <div style="display:flex;gap:12px">
+              <div>
+                <div class="comp-node zone-purple" style="min-width:130px;font-size:12px">uow.Facts</div>
+                <div style="padding-left:8px;color:var(--text3);font-size:12px;margin:2px 0">↓ writes</div>
+                <div class="comp-node" style="background:var(--bg3);border:1px solid var(--border);font-size:12px">dbo.Facts</div>
+              </div>
+              <div>
+                <div class="comp-node zone-orange" style="min-width:130px;font-size:12px">uow.AskCtkQueue</div>
+                <div style="padding-left:8px;color:var(--text3);font-size:12px;margin:2px 0">↓ inserts</div>
+                <div class="comp-node" style="background:var(--bg3);border:1px solid var(--border);font-size:12px">AutoAskCTKUpdateQueue</div>
+              </div>
+            </div>
+            <div style="padding-left:16px;color:var(--text3)">↓ commit (both or nothing)</div>
+            <div class="comp-node zone-green" style="width:120px;font-size:12px">HTTP 200 OK</div>
+          </div>
+        </div>
+
+        <div>
+          <div style="font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--orange);margin-bottom:16px">BACKGROUND AI PATH (Async)</div>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <div style="display:flex;align-items:center;gap:8px">
+              <div class="comp-node zone-orange" style="min-width:200px">ProcessAskCtkQueueService</div>
+              <div class="comp-comment">30s poll loop</div>
+            </div>
+            <div style="padding-left:16px;color:var(--text3)">↓ calls</div>
+            <div style="display:flex;align-items:center;gap:8px">
+              <div class="comp-node zone-orange" style="min-width:200px">AskCtkJobProcessor</div>
+              <div class="comp-comment">orchestrates steps</div>
+            </div>
+            <div style="padding-left:16px;color:var(--text3)">↓ uses</div>
+            <div style="display:flex;flex-direction:column;gap:6px">
+              <div style="display:flex;align-items:center;gap:8px">
+                <div class="comp-node zone-purple" style="min-width:200px">PromptRepository.ResolveAsync</div>
+                <div class="comp-comment">company-override</div>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px">
+                <div class="comp-node zone-orange" style="min-width:200px">StatementContextBuilder</div>
+                <div class="comp-comment">loads claim data</div>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px">
+                <div class="comp-node zone-purple" style="min-width:200px">AskCtkMcpClient</div>
+                <div class="comp-comment">POST /ai/complete</div>
+              </div>
+              <div style="padding-left:16px;color:var(--text3);font-size:13px">→ ctk-mcp-nls (Gemini)</div>
+              <div style="display:flex;align-items:center;gap:8px">
+                <div class="comp-node zone-orange" style="min-width:200px">AiResultWriterRegistry</div>
+                <div class="comp-comment">routes by AiRequestType</div>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px">
+                <div class="comp-node zone-green" style="min-width:200px">StatementSummaryWriter</div>
+                <div class="comp-comment">writes Facts.AiSummary</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <hr class="divider">
+
+    <div style="font-size:16px;font-weight:700;margin-bottom:16px">New Classes Created</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px">
+      <div class="card" style="padding:16px">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--purple);margin-bottom:8px">CTK.Common\DTOs\AskCtk\</div>
+        <div style="font-family:monospace;font-size:13px;color:var(--text2);line-height:2">AskCtkDtos.cs</div>
+      </div>
+      <div class="card" style="padding:16px">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--purple);margin-bottom:8px">CTK.Core\Interfaces\</div>
+        <div style="font-family:monospace;font-size:13px;color:var(--text2);line-height:2">IAskCtkQueueRepository.cs</div>
+      </div>
+      <div class="card" style="padding:16px">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--purple);margin-bottom:8px">CTK.Infrastructure\Repositories\</div>
+        <div style="font-family:monospace;font-size:13px;color:var(--text2);line-height:2">AskCtkQueueRepository.cs</div>
+      </div>
+      <div class="card" style="padding:16px">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--orange);margin-bottom:8px">CTK.Application\AskCtk\</div>
+        <div style="font-family:monospace;font-size:13px;color:var(--text2);line-height:1.9">
+          IClaimContextBuilder.cs<br>
+          StatementContextBuilder.cs<br>
+          IAskCtkAiClient.cs<br>
+          MockAskCtkAiClient.cs<br>
+          IAiResultWriter.cs<br>
+          StatementSummaryWriter.cs<br>
+          IAiResultWriterRegistry.cs<br>
+          AiResultWriterRegistry.cs<br>
+          AskCtkJobProcessor.cs
+        </div>
+      </div>
+      <div class="card" style="padding:16px">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--blue);margin-bottom:8px">CTK.Infrastructure\ExternalServices\</div>
+        <div style="font-family:monospace;font-size:13px;color:var(--text2);line-height:2">AskCtkMcpClient.cs</div>
+      </div>
+      <div class="card" style="padding:16px">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--orange);margin-bottom:8px">CTK.API\HostedServices\</div>
+        <div style="font-family:monospace;font-size:13px;color:var(--text2);line-height:2">ProcessAskCtkQueueService.cs</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- RESILIENCE -->
+<div class="section" id="resilience">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-tag">Section 6</div>
+      <div class="section-title">Resilience &amp; Retry Logic</div>
+      <div class="section-desc">What happens when the AI server is down or returns an error. The system retries automatically with increasing delays, then marks the job as failed for manual review.</div>
+    </div>
+
+    <div class="two-col">
+      <div>
+        <div style="font-size:16px;font-weight:700;margin-bottom:20px">Retry Schedule</div>
+        <div style="display:flex;flex-direction:column;gap:0">
+
+          <div style="display:flex;align-items:center;gap:16px;margin-bottom:4px">
+            <div class="retry-node" style="background:var(--blue-dim);border:1px solid var(--blue);color:var(--blue)">Job runs</div>
+          </div>
+
+          <div style="display:flex;align-items:center;gap:8px;padding:4px 0;padding-left:20px;color:var(--text3);font-size:13px">
+            ↓ AI server error or timeout
+          </div>
+
+          <div style="display:flex;align-items:center;gap:16px;margin-bottom:4px">
+            <div class="retry-node" style="background:var(--red-dim);border:1px solid var(--red);color:var(--red)">Attempt 1 fails</div>
+            <div style="font-size:13px;color:var(--text2)">→ wait <strong style="color:var(--orange)">1 minute</strong> → Status: <span class="status-pill status-retry">RETRY</span></div>
+          </div>
+
+          <div style="display:flex;align-items:center;gap:8px;padding:4px 0;padding-left:20px;color:var(--text3);font-size:13px">
+            ↓ still failing
+          </div>
+
+          <div style="display:flex;align-items:center;gap:16px;margin-bottom:4px">
+            <div class="retry-node" style="background:var(--red-dim);border:1px solid var(--red);color:var(--red)">Attempt 2 fails</div>
+            <div style="font-size:13px;color:var(--text2)">→ wait <strong style="color:var(--orange)">5 minutes</strong> → Status: <span class="status-pill status-retry">RETRY</span></div>
+          </div>
+
+          <div style="display:flex;align-items:center;gap:8px;padding:4px 0;padding-left:20px;color:var(--text3);font-size:13px">
+            ↓ still failing
+          </div>
+
+          <div style="display:flex;align-items:center;gap:16px;margin-bottom:4px">
+            <div class="retry-node" style="background:var(--red-dim);border:1px solid var(--red);color:var(--red)">Attempt 3 fails</div>
+            <div style="font-size:13px;color:var(--text2)">→ wait <strong style="color:var(--orange)">15 minutes</strong> → Status: <span class="status-pill status-retry">RETRY</span></div>
+          </div>
+
+          <div style="display:flex;align-items:center;gap:8px;padding:4px 0;padding-left:20px;color:var(--text3);font-size:13px">
+            ↓ still failing (MaxRetryCount = 3 reached)
+          </div>
+
+          <div style="display:flex;align-items:center;gap:16px">
+            <div class="retry-node" style="background:var(--red-dim);border:2px solid var(--red);color:var(--red)">FAILED</div>
+            <div style="font-size:13px;color:var(--text2)">Manual review required. Claim save was never affected.</div>
+          </div>
+
+        </div>
+
+        <div class="callout warn" style="margin-top:24px">
+          <div class="callout-icon">⚠️</div>
+          <div class="callout-text">The adjuster's original save <strong>always succeeds</strong> regardless of retry status. A FAILED AI job means the AI summary field stays empty — not that the claim was lost.</div>
+        </div>
+      </div>
+
+      <div>
+        <div style="font-size:16px;font-weight:700;margin-bottom:20px">Dedup Guard</div>
+        <div class="dedup-box">
+          <div class="dedup-title">Prevents duplicate AI jobs</div>
+          <div class="dedup-rule">
+            Before inserting a new queue row, check: does a PENDING, PROCESSING, or RETRY job already exist for this exact combination of <strong>CompanyId + ToolkitId + SourceTable + SourceRecordId + AiRequestType</strong>?
+          </div>
+          <div style="font-size:14px;color:var(--text2);margin-top:12px;margin-bottom:16px">
+            <strong style="color:var(--text)">If yes:</strong> skip the insert — return null (no new job)<br>
+            <strong style="color:var(--text)">If no:</strong> insert new PENDING job
+          </div>
+          <div style="font-size:13px;color:var(--text3);font-style:italic">
+            This matters when adjusters type quickly and save multiple times in the 60-second debounce window — only one AI job runs, not one per keypress.
+          </div>
+        </div>
+
+        <div style="margin-top:24px;font-size:16px;font-weight:700;margin-bottom:16px">Debounce (NotBeforeAt)</div>
+        <div class="card">
+          <div style="font-size:14px;color:var(--text2);line-height:1.8">
+            Every new job is created with <code>NotBeforeAt = now + 60 seconds</code>.<br><br>
+            This means if the adjuster saves at <strong>10:00:00</strong>, the AI job won't be picked up until <strong>10:01:00</strong> at the earliest. If they save again at <strong>10:00:30</strong>, the dedup guard skips the second job. The first job still runs once at 10:01:00 — reading the latest saved state at that point.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- DB SCHEMA -->
+<div class="section" id="schema">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-tag">Section 7</div>
+      <div class="section-title">Database Schema Changes</div>
+      <div class="section-desc">All changes are additive with IF NOT EXISTS guards. Can be run multiple times safely. Must be applied to DEV master and every PROD customer database manually.</div>
+    </div>
+
+    <div class="callout warn">
+      <div class="callout-icon">⚠️</div>
+      <div class="callout-text">Each customer has their own <code>Claimtoolkit_auto</code> database. These changes must be applied to <strong>every customer DB</strong> (elcl, united-uat, united) plus the DEV master. There is no shared schema — each replica is independent.</div>
+    </div>
+
+    <div class="schema-grid" style="margin-top:24px">
+
+      <div class="schema-card">
+        <div class="schema-header">
+          <div class="schema-table-name">dbo.AutoAskCTKUpdateQueue</div>
+          <div class="schema-badge">NEW TABLE</div>
+        </div>
+        <div class="schema-cols">
+          <div class="schema-col"><span class="col-name">QueueId</span><span class="col-type">BIGINT IDENTITY PK</span></div>
+          <div class="schema-col"><span class="col-name">CompanyId</span><span class="col-type">INT NOT NULL</span></div>
+          <div class="schema-col"><span class="col-name">ToolkitId</span><span class="col-type">INT NOT NULL</span></div>
+          <div class="schema-col"><span class="col-name">SourceTableName</span><span class="col-type">NVARCHAR(128)</span></div>
+          <div class="schema-col"><span class="col-name">SourceRecordId</span><span class="col-type">BIGINT</span></div>
+          <div class="schema-col"><span class="col-name">AiRequestType</span><span class="col-type">NVARCHAR(120)</span></div>
+          <div class="schema-col"><span class="col-name">PromptTypeKey</span><span class="col-type">NVARCHAR(120)</span></div>
+          <div class="schema-col"><span class="col-name">Status</span><span class="col-type">NVARCHAR(50) DEFAULT 'PENDING'</span></div>
+          <div class="schema-col"><span class="col-name">RetryCount</span><span class="col-type">INT DEFAULT 0</span></div>
+          <div class="schema-col"><span class="col-name">NotBeforeAt</span><span class="col-type">DATETIME2 NULL</span></div>
+          <div class="schema-col"><span class="col-name">AiResponseRaw</span><span class="col-type">NVARCHAR(MAX) NULL</span></div>
+          <div class="schema-col"><span class="col-name">ErrorMessage</span><span class="col-type">NVARCHAR(MAX) NULL</span></div>
+          <div class="schema-col"><span class="col-name">CreatedAt</span><span class="col-type">DATETIME2 DEFAULT SYSUTCDATETIME</span></div>
+        </div>
+      </div>
+
+      <div class="schema-card">
+        <div class="schema-header">
+          <div class="schema-table-name">dbo.AskCtk_AuditLog</div>
+          <div class="schema-badge">NEW TABLE</div>
+        </div>
+        <div class="schema-cols">
+          <div class="schema-col"><span class="col-name">AuditLogId</span><span class="col-type">BIGINT IDENTITY PK</span></div>
+          <div class="schema-col"><span class="col-name">QueueId</span><span class="col-type">BIGINT NOT NULL</span></div>
+          <div class="schema-col"><span class="col-name">CompanyId</span><span class="col-type">INT NOT NULL</span></div>
+          <div class="schema-col"><span class="col-name">ToolkitId</span><span class="col-type">INT NOT NULL</span></div>
+          <div class="schema-col"><span class="col-name">EventType</span><span class="col-type">NVARCHAR(100)</span></div>
+          <div class="schema-col"><span class="col-name">Message</span><span class="col-type">NVARCHAR(MAX) NULL</span></div>
+          <div class="schema-col"><span class="col-name">MetadataJson</span><span class="col-type">NVARCHAR(MAX) NULL</span></div>
+          <div class="schema-col"><span class="col-name">CreatedAt</span><span class="col-type">DATETIME2 DEFAULT SYSUTCDATETIME</span></div>
+        </div>
+      </div>
+
+      <div class="schema-card">
+        <div class="schema-header">
+          <div class="schema-table-name">dbo.Facts</div>
+          <div class="schema-badge">3 NEW COLUMNS</div>
+        </div>
+        <div class="schema-cols">
+          <div class="schema-col"><span class="col-name">… existing columns …</span></div>
+          <div class="schema-col"><span class="col-name">AiSummary</span><span class="col-type">NVARCHAR(MAX) NULL</span><span class="col-ai">AI</span></div>
+          <div class="schema-col"><span class="col-name">AiSummaryAt</span><span class="col-type">DATETIME2 NULL</span><span class="col-ai">AI</span></div>
+          <div class="schema-col"><span class="col-name">AiSummarySource</span><span class="col-type">NVARCHAR(50) NULL</span><span class="col-ai">AI</span></div>
+        </div>
+      </div>
+
+      <div class="schema-card">
+        <div class="schema-header">
+          <div class="schema-table-name">dbo.Assessment</div>
+          <div class="schema-badge">6 NEW COLUMNS</div>
+        </div>
+        <div class="schema-cols">
+          <div class="schema-col"><span class="col-name">… existing columns …</span></div>
+          <div class="schema-col"><span class="col-name">AiPointOfImpact</span><span class="col-type">NVARCHAR(MAX) NULL</span><span class="col-ai">AI</span></div>
+          <div class="schema-col"><span class="col-name">AiRightOfWaySummary</span><span class="col-type">NVARCHAR(MAX) NULL</span><span class="col-ai">AI</span></div>
+          <div class="schema-col"><span class="col-name">AiSpeedDutySummary</span><span class="col-type">NVARCHAR(MAX) NULL</span><span class="col-ai">AI</span></div>
+          <div class="schema-col"><span class="col-name">AiLookoutDutySummary</span><span class="col-type">NVARCHAR(MAX) NULL</span><span class="col-ai">AI</span></div>
+          <div class="schema-col"><span class="col-name">AiAvoidanceDutySummary</span><span class="col-type">NVARCHAR(MAX) NULL</span><span class="col-ai">AI</span></div>
+          <div class="schema-col"><span class="col-name">AiOverallDutyBreachSummary</span><span class="col-type">NVARCHAR(MAX) NULL</span><span class="col-ai">AI</span></div>
+        </div>
+      </div>
+
+      <div class="schema-card">
+        <div class="schema-header">
+          <div class="schema-table-name">dbo.AskCtk_Prompt_Type</div>
+          <div class="schema-badge">5 NEW COLUMNS</div>
+        </div>
+        <div class="schema-cols">
+          <div class="schema-col"><span class="col-name">… existing columns …</span></div>
+          <div class="schema-col"><span class="col-name">AiFunctionType</span><span class="col-type">NVARCHAR(80) NULL</span></div>
+          <div class="schema-col"><span class="col-name">AiRequestType</span><span class="col-type">NVARCHAR(120) NULL</span></div>
+          <div class="schema-col"><span class="col-name">OutputFormat</span><span class="col-type">NVARCHAR(50) NULL</span></div>
+          <div class="schema-col"><span class="col-name">RequiresHumanReview</span><span class="col-type">BIT DEFAULT 0</span></div>
+          <div class="schema-col"><span class="col-name">ModuleName</span><span class="col-type">NVARCHAR(100) DEFAULT 'AUTO_LIABILITY'</span></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- SAFETY RULES -->
+<div class="section" id="rules">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-tag">Section 8</div>
+      <div class="section-title">The 5 Safety Rules</div>
+      <div class="section-desc">These rules must never be broken. They protect claim data integrity, adjuster productivity, and audit compliance.</div>
+    </div>
+
+    <div class="rules-grid">
+      <div class="rule-card r1">
+        <div class="rule-num" style="color:var(--blue)">Rule 1</div>
+        <div class="rule-title">AI NEVER Blocks the Save</div>
+        <div class="rule-desc">The user's save operation MUST complete in under 1 second. AI processing happens in a separate background thread. If the AI server is down, the adjuster's save still works perfectly — the AI job just waits in the queue.</div>
+      </div>
+      <div class="rule-card r2">
+        <div class="rule-num" style="color:var(--green)">Rule 2</div>
+        <div class="rule-title">Enqueue is Atomic with Save</div>
+        <div class="rule-desc">The Facts write and the AI queue insert happen in the SAME database transaction. If the save fails (e.g., validation error), the queue insert is also rolled back — no orphan jobs are ever created for claims that weren't actually saved.</div>
+      </div>
+      <div class="rule-card r3">
+        <div class="rule-num" style="color:var(--purple)">Rule 3</div>
+        <div class="rule-title">AI Writes Only to Designated Columns</div>
+        <div class="rule-desc">AI cannot write to any arbitrary field. Every AI function has a specific Writer class that targets only a pre-approved set of columns. Adding a new AI output target requires adding a new Writer class — not changing the AI call itself.</div>
+      </div>
+      <div class="rule-card r4">
+        <div class="rule-num" style="color:var(--orange)">Rule 4</div>
+        <div class="rule-title">Every AI Write is Audited</div>
+        <div class="rule-desc">Every job lifecycle event (STARTED, COMPLETED, FAILED, RETRY) writes a row to <code>AskCtk_AuditLog</code>. This provides a complete history of what AI wrote, when, for which claim, and from which prompt version — essential for claims disputes and compliance review.</div>
+      </div>
+      <div class="rule-card r5">
+        <div class="rule-num" style="color:var(--red)">Rule 5</div>
+        <div class="rule-title">Worker Sets Tenant Context First</div>
+        <div class="rule-desc">The background worker has no HTTP request — so there is no automatic tenant resolution. Before reading or writing any claim data, the worker MUST call <code>HttpTenantProvider.SetTenantId(job.CompanyId)</code>. Without this, the DB context doesn't know which company's database to use.</div>
+      </div>
+    </div>
+
+    <hr class="divider">
+
+    <div class="callout success">
+      <div class="callout-icon">✅</div>
+      <div class="callout-text">
+        <strong>What this means for the adjuster:</strong> They fill in the party statement, click Save, and immediately continue their work. 30–60 seconds later, when they revisit the statement, the AI summary badge has appeared automatically — with a structured analysis of what was said, what's missing, and any contradictions. No waiting, no manual requests, no extra clicks.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<div style="background:var(--bg2);border-top:1px solid var(--border);padding:32px 24px;text-align:center">
+  <div style="font-size:14px;color:var(--text3)">Ask CTK — Auto Liability Implementation Guide &nbsp;·&nbsp; Claim Toolkit &nbsp;·&nbsp; Vaival Technologies</div>
+  <div style="font-size:12px;color:var(--text3);margin-top:8px">Phase 1–3 covers Increment 1 (Statement Summary). Phases 4–8 extend to all 10 AI integration points.</div>
+</div>
+
+</body>
+</html>

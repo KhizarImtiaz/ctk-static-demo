@@ -1,0 +1,1621 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ask CTK — Complete Implementation Specification</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --bg2: #161b27;
+    --bg3: #1e2535;
+    --border: #2a3347;
+    --text: #e2e8f0;
+    --muted: #8892a4;
+    --blue: #4f9cf9;
+    --green: #34d399;
+    --orange: #f59e0b;
+    --purple: #a78bfa;
+    --red: #f87171;
+    --cyan: #22d3ee;
+    --new-badge: #059669;
+    --edit-badge: #d97706;
+    --sidebar-w: 280px;
+    --font-mono: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: var(--font-sans); font-size: 14px; line-height: 1.6; display: flex; min-height: 100vh; }
+
+  /* ── Sidebar ── */
+  #sidebar {
+    width: var(--sidebar-w); min-width: var(--sidebar-w);
+    background: var(--bg2); border-right: 1px solid var(--border);
+    position: fixed; top: 0; left: 0; height: 100vh; overflow-y: auto;
+    padding: 16px 0; z-index: 100;
+  }
+  #sidebar .logo { padding: 8px 20px 16px; border-bottom: 1px solid var(--border); margin-bottom: 12px; }
+  #sidebar .logo h2 { font-size: 13px; font-weight: 700; color: var(--blue); letter-spacing: 0.05em; text-transform: uppercase; }
+  #sidebar .logo p { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  #sidebar a { display: block; padding: 5px 20px; font-size: 12px; color: var(--muted); text-decoration: none; border-left: 2px solid transparent; transition: all 0.15s; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #sidebar a:hover { color: var(--text); background: var(--bg3); }
+  #sidebar a.active { color: var(--blue); border-left-color: var(--blue); background: rgba(79,156,249,0.08); }
+  #sidebar .section-label { padding: 12px 20px 4px; font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; }
+  #sidebar a.sub { padding-left: 32px; font-size: 11px; }
+
+  /* ── Main content ── */
+  main { margin-left: var(--sidebar-w); flex: 1; max-width: 1100px; padding: 40px 48px; }
+
+  h1 { font-size: 28px; font-weight: 800; color: var(--text); margin-bottom: 8px; }
+  h2 { font-size: 20px; font-weight: 700; color: var(--text); margin: 48px 0 16px; padding-top: 16px; border-top: 1px solid var(--border); }
+  h3 { font-size: 15px; font-weight: 600; color: var(--cyan); margin: 28px 0 10px; }
+  h4 { font-size: 13px; font-weight: 600; color: var(--orange); margin: 18px 0 8px; }
+  p { color: var(--muted); margin-bottom: 10px; line-height: 1.7; }
+  ul { margin: 8px 0 12px 20px; }
+  li { color: var(--muted); margin-bottom: 4px; font-size: 13px; }
+  li strong { color: var(--text); }
+  a { color: var(--blue); }
+
+  /* ── Hero ── */
+  .hero {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 40%, #0f3460 100%);
+    border: 1px solid var(--border); border-radius: 12px;
+    padding: 32px 36px; margin-bottom: 32px;
+  }
+  .hero .subtitle { font-size: 13px; color: var(--muted); margin: 8px 0 20px; }
+  .stat-row { display: flex; gap: 20px; flex-wrap: wrap; }
+  .stat { background: rgba(255,255,255,0.05); border: 1px solid var(--border); border-radius: 8px; padding: 12px 20px; text-align: center; min-width: 130px; }
+  .stat .num { font-size: 24px; font-weight: 800; color: var(--blue); }
+  .stat .label { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .rule-box { background: rgba(248,113,113,0.08); border: 1px solid rgba(248,113,113,0.3); border-radius: 8px; padding: 12px 16px; margin: 16px 0; }
+  .rule-box strong { color: var(--red); }
+  .rule-box p { color: var(--text); margin: 0; }
+
+  /* ── File info ── */
+  .file-header { display: flex; align-items: center; gap: 10px; margin: 24px 0 6px; }
+  .badge { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.05em; }
+  .badge.new { background: rgba(5,150,105,0.2); color: var(--green); border: 1px solid rgba(5,150,105,0.3); }
+  .badge.edit { background: rgba(217,119,6,0.2); color: var(--orange); border: 1px solid rgba(217,119,6,0.3); }
+  .badge.sql { background: rgba(34,211,238,0.15); color: var(--cyan); border: 1px solid rgba(34,211,238,0.3); }
+  .badge.python { background: rgba(167,139,250,0.2); color: var(--purple); border: 1px solid rgba(167,139,250,0.3); }
+  .file-path { font-family: var(--font-mono); font-size: 12px; color: var(--text); background: var(--bg3); padding: 3px 10px; border-radius: 4px; border: 1px solid var(--border); }
+
+  /* ── Code ── */
+  pre {
+    background: #0d1117; border: 1px solid var(--border); border-radius: 8px;
+    padding: 16px 20px; overflow-x: auto; margin: 6px 0 16px; font-size: 12px;
+    line-height: 1.65; font-family: var(--font-mono);
+    position: relative;
+  }
+  pre .copy-btn {
+    position: absolute; top: 8px; right: 10px;
+    background: var(--bg3); border: 1px solid var(--border); color: var(--muted);
+    font-size: 10px; padding: 3px 8px; border-radius: 4px; cursor: pointer;
+    font-family: var(--font-sans);
+  }
+  pre .copy-btn:hover { background: var(--border); color: var(--text); }
+  code { font-family: var(--font-mono); font-size: 12px; color: #abb2bf; }
+
+  /* Syntax coloring */
+  .k { color: #c678dd; } /* keyword */
+  .t { color: #e5c07b; } /* type/class */
+  .s { color: #98c379; } /* string */
+  .c { color: #5c6370; font-style: italic; } /* comment */
+  .n { color: #61afef; } /* name/method */
+  .p { color: #abb2bf; } /* punctuation */
+  .num { color: #d19a66; } /* number */
+  .at { color: #e06c75; } /* attribute/decorator */
+  .kw { color: #56b6c2; } /* secondary keyword */
+
+  /* ── Table ── */
+  table { width: 100%; border-collapse: collapse; margin: 12px 0 20px; font-size: 12px; }
+  th { background: var(--bg3); color: var(--text); font-weight: 600; padding: 8px 12px; text-align: left; border: 1px solid var(--border); font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; }
+  td { padding: 7px 12px; border: 1px solid var(--border); color: var(--muted); vertical-align: top; }
+  td strong { color: var(--text); }
+  td code { background: var(--bg3); padding: 1px 5px; border-radius: 3px; font-size: 11px; color: var(--cyan); }
+  tr:hover td { background: rgba(255,255,255,0.02); }
+
+  /* ── Step counter ── */
+  .step-num { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; background: var(--blue); color: #fff; font-weight: 700; font-size: 12px; border-radius: 50%; margin-right: 8px; flex-shrink: 0; }
+  .step-row { display: flex; align-items: flex-start; gap: 6px; margin-bottom: 6px; }
+
+  /* ── Info/note boxes ── */
+  .note { background: rgba(79,156,249,0.08); border: 1px solid rgba(79,156,249,0.3); border-radius: 8px; padding: 10px 14px; margin: 12px 0; }
+  .note p { color: var(--text); margin: 0; font-size: 13px; }
+  .warn { background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.3); border-radius: 8px; padding: 10px 14px; margin: 12px 0; }
+  .warn p { color: var(--orange); margin: 0; font-size: 13px; }
+
+  /* ── Edit diff ── */
+  .diff-add { background: rgba(52,211,153,0.08); border-left: 3px solid var(--green); padding: 8px 12px; margin: 6px 0; border-radius: 0 4px 4px 0; }
+  .diff-add code { color: var(--green); }
+  .diff-rem { background: rgba(248,113,113,0.08); border-left: 3px solid var(--red); padding: 8px 12px; margin: 6px 0; border-radius: 0 4px 4px 0; }
+  .diff-rem code { color: var(--red); }
+
+  /* ── Checklist ── */
+  .checklist { list-style: none; margin: 0; padding: 0; }
+  .checklist li { display: flex; align-items: flex-start; gap: 10px; padding: 6px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+  .checklist li:last-child { border: none; }
+  .checklist li .check { color: var(--green); font-size: 16px; margin-top: 1px; }
+  .checklist li .label { color: var(--text); flex: 1; }
+  .checklist li .note-text { color: var(--muted); font-size: 11px; }
+
+  /* ── Phase bar ── */
+  .phase-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin: 16px 0; }
+  .phase-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; }
+  .phase-card .phase-num { font-size: 10px; color: var(--muted); text-transform: uppercase; font-weight: 700; }
+  .phase-card .phase-title { font-size: 13px; color: var(--text); font-weight: 600; margin-top: 4px; }
+  .phase-card .phase-desc { font-size: 11px; color: var(--muted); margin-top: 4px; }
+
+  /* ── Scroll to top ── */
+  .top-link { position: fixed; bottom: 24px; right: 24px; background: var(--blue); color: #fff; border: none; border-radius: 50%; width: 36px; height: 36px; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; text-decoration: none; }
+
+  @media (max-width: 900px) {
+    #sidebar { display: none; }
+    main { margin-left: 0; padding: 24px 20px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════
+     SIDEBAR
+═══════════════════════════════════════════════════ -->
+<nav id="sidebar">
+  <div class="logo">
+    <h2>Ask CTK Spec</h2>
+    <p>Complete Implementation Doc</p>
+  </div>
+
+  <a href="#overview">Overview &amp; Rules</a>
+  <a href="#filemap">File Map (All 26 files)</a>
+
+  <div class="section-label">Database</div>
+  <a href="#ddl" class="sub">DDL — All SQL</a>
+
+  <div class="section-label">New C# Files (14)</div>
+  <a href="#dto" class="sub">AskCtkDtos.cs</a>
+  <a href="#iqueue-repo" class="sub">IAskCtkQueueRepository.cs</a>
+  <a href="#queue-repo" class="sub">AskCtkQueueRepository.cs</a>
+  <a href="#icontext" class="sub">IClaimContextBuilder.cs</a>
+  <a href="#context-builder" class="sub">StatementContextBuilder.cs</a>
+  <a href="#iai-client" class="sub">IAskCtkAiClient.cs</a>
+  <a href="#mock-client" class="sub">MockAskCtkAiClient.cs</a>
+  <a href="#mcp-client" class="sub">AskCtkMcpClient.cs</a>
+  <a href="#iwriter" class="sub">IAiResultWriter.cs</a>
+  <a href="#iregistry" class="sub">IAiResultWriterRegistry.cs</a>
+  <a href="#registry" class="sub">AiResultWriterRegistry.cs</a>
+  <a href="#stmt-writer" class="sub">StatementSummaryWriter.cs</a>
+  <a href="#processor" class="sub">AskCtkJobProcessor.cs</a>
+  <a href="#worker" class="sub">ProcessAskCtkQueueService.cs</a>
+
+  <div class="section-label">Edited C# Files (9)</div>
+  <a href="#edit-iuow" class="sub">IUnitOfWork.cs</a>
+  <a href="#edit-uow" class="sub">UnitOfWork.cs</a>
+  <a href="#edit-ifactsrepo" class="sub">IFactsRepository.cs</a>
+  <a href="#edit-factsrepo" class="sub">FactsRepository.cs</a>
+  <a href="#edit-ifacts" class="sub">IFactsService.cs</a>
+  <a href="#edit-facts" class="sub">FactsService.cs</a>
+  <a href="#edit-ctrl" class="sub">FactsController.cs</a>
+  <a href="#edit-app" class="sub">ApplicationExtensions.cs</a>
+  <a href="#edit-infra" class="sub">InfrastructureExtensions.cs</a>
+
+  <div class="section-label">Other Changes</div>
+  <a href="#edit-appsettings" class="sub">appsettings.json</a>
+  <a href="#python" class="sub">main.py (Python)</a>
+  <a href="#env" class="sub">.env (ctk-mcp-nls)</a>
+  <a href="#frontend" class="sub">Frontend Badge</a>
+
+  <div class="section-label">Verification</div>
+  <a href="#verify">Verification Checklist</a>
+</nav>
+
+<!-- ══════════════════════════════════════════════════
+     MAIN
+═══════════════════════════════════════════════════ -->
+<main>
+
+<!-- ── Hero ── -->
+<div class="hero">
+  <h1>Ask CTK — Complete Implementation Spec</h1>
+  <p class="subtitle">Auto Liability · Invisible AI · Statement Summary (Increment 1) · Full Handoff Document</p>
+  <div class="stat-row">
+    <div class="stat"><div class="num">14</div><div class="label">New Files</div></div>
+    <div class="stat"><div class="num">9</div><div class="label">Edited Files</div></div>
+    <div class="stat"><div class="num">3</div><div class="label">Other Changes</div></div>
+    <div class="stat"><div class="num">0 s</div><div class="label">Adjuster Waits</div></div>
+    <div class="stat"><div class="num">30 s</div><div class="label">Poll Interval</div></div>
+  </div>
+</div>
+
+<!-- ══════════════════ OVERVIEW ══════════════════ -->
+<h2 id="overview">Overview &amp; Cardinal Rules</h2>
+
+<p><strong>What we're building:</strong> Ask CTK is an invisible AI layer that silently enriches claim fields after an adjuster saves. The adjuster clicks Save and gets an instant response. In the background, a worker polls a SQL queue every 30 seconds, calls Google Gemini via the existing <code>ctk-mcp-nls</code> Python service, and writes AI text back to designated DB columns.</p>
+
+<p><strong>Increment 1 scope:</strong> When an adjuster saves a party statement (Facts record), AI generates a factual summary and writes it to <code>Facts.AiSummary</code>. This establishes the complete pipeline; all other integration points follow the same pattern.</p>
+
+<div class="rule-box">
+  <p><strong>CARDINAL RULE:</strong> AI MUST NEVER run inside the user save. Save enqueues only. Background worker drains the queue. If enqueue fails, log and continue — do NOT block the save.</p>
+</div>
+
+<h4>Project locations</h4>
+<table>
+  <tr><th>Component</th><th>Path</th><th>Tech</th></tr>
+  <tr><td><strong>.NET Backend</strong></td><td><code>D:\vaival\claimtoolkit\Auto-Liability\ctk-autoliability-backend\</code></td><td>.NET 9, Dapper, SQL Server</td></tr>
+  <tr><td><strong>Python AI Server</strong></td><td><code>D:\vaival\claimtoolkit\Natural-Language-Processing\ctk-mcp-nls\</code></td><td>FastAPI, LangChain, Gemini</td></tr>
+  <tr><td><strong>Frontend</strong></td><td><code>D:\vaival\claimtoolkit\Auto-Liability\ctk-autoliability-frontend\</code></td><td>Next.js 16</td></tr>
+  <tr><td><strong>Database</strong></td><td><code>claimtoolkit_auto</code> (per-customer SQL Server DB)</td><td>SQL Server</td></tr>
+</table>
+
+<h4>Existing patterns to follow exactly</h4>
+<ul>
+  <li><strong>Repository pattern:</strong> Constructor takes <code>(IDbConnection conn, IDbTransaction? transaction = null)</code></li>
+  <li><strong>UnitOfWork lazy loading:</strong> <code>private IRepo? _repo; public IRepo Repo => _repo ??= new Repo(GetTenantConnection(), _tenantTx);</code></li>
+  <li><strong>BeginAsync() resets:</strong> All tenant repo fields set to <code>null</code> in <code>BeginAsync()</code></li>
+  <li><strong>Tenant ID:</strong> Comes from <code>X-Tenant-ID</code> HTTP header. In background worker: must call <code>tenantProvider.SetTenantId(companyId.ToString())</code> before any DB access</li>
+  <li><strong>Services:</strong> All application services registered as <code>AddScoped</code></li>
+  <li><strong>SQL style:</strong> Dapper with C# raw string literals (<code>"""..."""</code>), parameterized with <code>@ParamName</code></li>
+</ul>
+
+<!-- ══════════════════ FILE MAP ══════════════════ -->
+<h2 id="filemap">File Map — All 26 Changes</h2>
+<table>
+  <tr><th>#</th><th>Action</th><th>File</th></tr>
+  <tr><td>1</td><td><span class="badge sql">SQL</span></td><td><code>Database\schema.sql</code> — APPEND queue/audit/columns/seed</td></tr>
+  <tr><td>2</td><td><span class="badge new">NEW</span></td><td><code>CTK.Common\DTOs\AskCtk\AskCtkDtos.cs</code></td></tr>
+  <tr><td>3</td><td><span class="badge new">NEW</span></td><td><code>CTK.Core\Interfaces\IAskCtkQueueRepository.cs</code></td></tr>
+  <tr><td>4</td><td><span class="badge new">NEW</span></td><td><code>CTK.Infrastructure\Repositories\AskCtkQueueRepository.cs</code></td></tr>
+  <tr><td>5</td><td><span class="badge new">NEW</span></td><td><code>CTK.Application\AskCtk\IClaimContextBuilder.cs</code></td></tr>
+  <tr><td>6</td><td><span class="badge new">NEW</span></td><td><code>CTK.Application\AskCtk\StatementContextBuilder.cs</code></td></tr>
+  <tr><td>7</td><td><span class="badge new">NEW</span></td><td><code>CTK.Application\AskCtk\IAskCtkAiClient.cs</code></td></tr>
+  <tr><td>8</td><td><span class="badge new">NEW</span></td><td><code>CTK.Application\AskCtk\MockAskCtkAiClient.cs</code></td></tr>
+  <tr><td>9</td><td><span class="badge new">NEW</span></td><td><code>CTK.Infrastructure\ExternalServices\AskCtkMcpClient.cs</code></td></tr>
+  <tr><td>10</td><td><span class="badge new">NEW</span></td><td><code>CTK.Application\AskCtk\IAiResultWriter.cs</code></td></tr>
+  <tr><td>11</td><td><span class="badge new">NEW</span></td><td><code>CTK.Application\AskCtk\IAiResultWriterRegistry.cs</code></td></tr>
+  <tr><td>12</td><td><span class="badge new">NEW</span></td><td><code>CTK.Application\AskCtk\AiResultWriterRegistry.cs</code></td></tr>
+  <tr><td>13</td><td><span class="badge new">NEW</span></td><td><code>CTK.Application\AskCtk\StatementSummaryWriter.cs</code></td></tr>
+  <tr><td>14</td><td><span class="badge new">NEW</span></td><td><code>CTK.Application\AskCtk\AskCtkJobProcessor.cs</code></td></tr>
+  <tr><td>15</td><td><span class="badge new">NEW</span></td><td><code>CTK.API\HostedServices\ProcessAskCtkQueueService.cs</code></td></tr>
+  <tr><td>16</td><td><span class="badge edit">EDIT</span></td><td><code>CTK.Core\Interfaces\IUnitOfWork.cs</code> — add AskCtkQueue property</td></tr>
+  <tr><td>17</td><td><span class="badge edit">EDIT</span></td><td><code>CTK.Infrastructure\UnitOfWork\UnitOfWork.cs</code> — field + property + null reset</td></tr>
+  <tr><td>18</td><td><span class="badge edit">EDIT</span></td><td><code>CTK.Core\Interfaces\AutoLia\IFactsRepository.cs</code> — add 2 methods</td></tr>
+  <tr><td>19</td><td><span class="badge edit">EDIT</span></td><td><code>CTK.Infrastructure\Repositories\AutoLia\FactsRepository.cs</code> — implement 2 methods</td></tr>
+  <tr><td>20</td><td><span class="badge edit">EDIT</span></td><td><code>CTK.Application\Interfaces\AutoLia\IFactsService.cs</code> — add companyId param</td></tr>
+  <tr><td>21</td><td><span class="badge edit">EDIT</span></td><td><code>CTK.Application\Services\AutoLia\FactsService.cs</code> — wrap + enqueue</td></tr>
+  <tr><td>22</td><td><span class="badge edit">EDIT</span></td><td><code>CTK.API\Controllers\FactsController.cs</code> — pass companyId</td></tr>
+  <tr><td>23</td><td><span class="badge edit">EDIT</span></td><td><code>CTK.API\Extensions\ApplicationExtensions.cs</code> — register services</td></tr>
+  <tr><td>24</td><td><span class="badge edit">EDIT</span></td><td><code>CTK.API\Extensions\InfrastructureExtensions.cs</code> — register AI client</td></tr>
+  <tr><td>25</td><td><span class="badge edit">EDIT</span></td><td><code>CTK.API\appsettings.json</code> — AskCtk config block</td></tr>
+  <tr><td>26</td><td><span class="badge python">PYTHON</span></td><td><code>ctk-mcp-nls\main.py</code> — add POST /ai/complete + .env key</td></tr>
+</table>
+
+<!-- ══════════════════ DDL ══════════════════ -->
+<h2 id="ddl">Database DDL — Append to <code>Database\schema.sql</code></h2>
+
+<div class="note"><p>All statements are idempotent (IF NOT EXISTS guards). Run on DEV and every PROD customer DB. Run in order — 1A through 1F.</p></div>
+
+<h3>1A — Queue table <code>dbo.AutoAskCTKUpdateQueue</code></h3>
+<pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name = 'AutoAskCTKUpdateQueue' AND schema_id = SCHEMA_ID('dbo'))
+BEGIN
+    CREATE TABLE [dbo].[AutoAskCTKUpdateQueue] (
+        [QueueId]               BIGINT IDENTITY(1,1) NOT NULL,
+        [CompanyId]             INT           NOT NULL,
+        [ToolkitId]             INT           NOT NULL,
+        [SourceTableName]       NVARCHAR(128) NOT NULL,
+        [SourceRecordId]        BIGINT        NOT NULL,
+        [SourceAction]          NVARCHAR(50)  NOT NULL DEFAULT 'UPDATE',
+        [AiFunctionType]        NVARCHAR(80)  NOT NULL,
+        [AiRequestType]         NVARCHAR(120) NOT NULL,
+        [PromptTypeKey]         NVARCHAR(120) NULL,
+        [OutputFormat]          NVARCHAR(50)  NOT NULL DEFAULT 'TEXT',
+        [Status]                NVARCHAR(50)  NOT NULL DEFAULT 'PENDING',
+        [Priority]              INT           NOT NULL DEFAULT 5,
+        [RetryCount]            INT           NOT NULL DEFAULT 0,
+        [MaxRetryCount]         INT           NOT NULL DEFAULT 3,
+        [NotBeforeAt]           DATETIME2     NULL,
+        [NextRetryAt]           DATETIME2     NULL,
+        [LockedBy]              NVARCHAR(100) NULL,
+        [LockedAt]              DATETIME2     NULL,
+        [AiResponseRaw]         NVARCHAR(MAX) NULL,
+        [AiResponseNormalized]  NVARCHAR(MAX) NULL,
+        [ErrorCode]             NVARCHAR(100) NULL,
+        [ErrorMessage]          NVARCHAR(MAX) NULL,
+        [InputTokenCount]       INT           NULL,
+        [OutputTokenCount]      INT           NULL,
+        [CreatedAt]             DATETIME2     NOT NULL DEFAULT SYSUTCDATETIME(),
+        [ProcessingStartedAt]   DATETIME2     NULL,
+        [ProcessingCompletedAt] DATETIME2     NULL,
+        [UpdatedAt]             DATETIME2     NOT NULL DEFAULT SYSUTCDATETIME(),
+        CONSTRAINT [PK_AutoAskCTKUpdateQueue] PRIMARY KEY CLUSTERED ([QueueId])
+    );
+    CREATE INDEX [IX_AutoAskCTKUpdateQueue_Poll]
+        ON [dbo].[AutoAskCTKUpdateQueue] ([Status],[NotBeforeAt],[Priority],[CreatedAt]);
+    CREATE INDEX [IX_AutoAskCTKUpdateQueue_Dedup]
+        ON [dbo].[AutoAskCTKUpdateQueue]
+        ([CompanyId],[ToolkitId],[SourceTableName],[SourceRecordId],[AiRequestType],[Status]);
+END
+GO</code></pre>
+
+<h3>1B — Audit log <code>dbo.AskCtk_AuditLog</code></h3>
+<pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name = 'AskCtk_AuditLog' AND schema_id = SCHEMA_ID('dbo'))
+BEGIN
+    CREATE TABLE [dbo].[AskCtk_AuditLog] (
+        [AuditLogId]   BIGINT IDENTITY(1,1) NOT NULL,
+        [QueueId]      BIGINT        NOT NULL,
+        [CompanyId]    INT           NOT NULL,
+        [ToolkitId]    INT           NOT NULL,
+        [EventType]    NVARCHAR(100) NOT NULL,
+        [Message]      NVARCHAR(MAX) NULL,
+        [MetadataJson] NVARCHAR(MAX) NULL,
+        [CreatedAt]    DATETIME2     NOT NULL DEFAULT SYSUTCDATETIME(),
+        CONSTRAINT [PK_AskCtk_AuditLog] PRIMARY KEY CLUSTERED ([AuditLogId])
+    );
+    CREATE INDEX [IX_AskCtk_AuditLog_Queue]
+        ON [dbo].[AskCtk_AuditLog] ([QueueId],[CreatedAt]);
+END
+GO</code></pre>
+
+<h3>1C — Extend <code>AskCtk_Prompt_Type</code> with AI metadata columns</h3>
+<pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id=OBJECT_ID('dbo.AskCtk_Prompt_Type') AND name='AiFunctionType')
+    ALTER TABLE [dbo].[AskCtk_Prompt_Type] ADD [AiFunctionType] NVARCHAR(80) NULL;
+IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id=OBJECT_ID('dbo.AskCtk_Prompt_Type') AND name='AiRequestType')
+    ALTER TABLE [dbo].[AskCtk_Prompt_Type] ADD [AiRequestType] NVARCHAR(120) NULL;
+IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id=OBJECT_ID('dbo.AskCtk_Prompt_Type') AND name='OutputFormat')
+    ALTER TABLE [dbo].[AskCtk_Prompt_Type] ADD [OutputFormat] NVARCHAR(50) NULL;
+IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id=OBJECT_ID('dbo.AskCtk_Prompt_Type') AND name='RequiresHumanReview')
+    ALTER TABLE [dbo].[AskCtk_Prompt_Type] ADD [RequiresHumanReview] BIT NOT NULL DEFAULT 0;
+IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id=OBJECT_ID('dbo.AskCtk_Prompt_Type') AND name='ModuleName')
+    ALTER TABLE [dbo].[AskCtk_Prompt_Type] ADD [ModuleName] NVARCHAR(100) NULL DEFAULT 'AUTO_LIABILITY';
+GO</code></pre>
+
+<h3>1D — Seed STATEMENT_SUMMARY prompt type + default prompt text</h3>
+<pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>IF NOT EXISTS (SELECT 1 FROM [dbo].[AskCtk_Prompt_Type] WHERE [TypeKey]='STATEMENT_SUMMARY')
+BEGIN
+    INSERT INTO [dbo].[AskCtk_Prompt_Type]
+        ([TypeKey],[TypeName],[Description],[Placeholders],[SortOrder],[IsActive],[CreatedAt],
+         [AiFunctionType],[AiRequestType],[OutputFormat],[RequiresHumanReview],[ModuleName])
+    VALUES (
+        'STATEMENT_SUMMARY',
+        'Statement Summary',
+        'AI-generated summary of a party statement (Facts record).',
+        '{{party_name}},{{fact_description}},{{right_of_way}},{{look_out}},{{avoidance}},{{speed}},{{point_of_impact}}',
+        10, 1, SYSUTCDATETIME(),
+        'SUMMARIZATION', 'STATEMENT_SUMMARY', 'TEXT', 0, 'AUTO_LIABILITY'
+    );
+END
+GO
+
+DECLARE @TypeId INT = (
+    SELECT [AskCtk_Prompt_TypeID]
+    FROM [dbo].[AskCtk_Prompt_Type]
+    WHERE [TypeKey] = 'STATEMENT_SUMMARY'
+);
+IF @TypeId IS NOT NULL AND NOT EXISTS (
+    SELECT 1 FROM [dbo].[AskCtk_Prompt]
+    WHERE [AskCtk_Prompt_TypeID] = @TypeId AND [IsActive] = 1 AND [CompanyId] IS NULL
+)
+BEGIN
+    INSERT INTO [dbo].[AskCtk_Prompt]
+        ([AskCtk_Prompt_TypeID],[CompanyId],[VersionNumber],[PromptText],[IsActive],[CreatedAt])
+    VALUES (
+        @TypeId, NULL, 1,
+        N'You are an auto liability claims analyst. Analyze this party statement and provide a structured summary.
+
+Party: {{party_name}}
+Description: {{fact_description}}
+Right of Way: {{right_of_way}} | Lookout: {{look_out}} | Avoidance: {{avoidance}} | Speed: {{speed}} | Point of Impact: {{point_of_impact}}
+
+Provide a concise factual summary (3-5 sentences) covering:
+- Direction of travel and speed at time of impact
+- Right-of-way position and any violations
+- Lookout and avoidance actions taken (or not taken)
+- Point of impact description
+- Any admissions, contradictions, or missing information
+
+Write in formal third-person prose. No headers or bullets.',
+        1, SYSUTCDATETIME()
+    );
+END
+GO</code></pre>
+
+<h3>1E — AI columns on <code>dbo.Facts</code> (Increment 1)</h3>
+<pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id=OBJECT_ID('dbo.Facts') AND name='AiSummary')
+    ALTER TABLE [dbo].[Facts] ADD [AiSummary] NVARCHAR(MAX) NULL;
+IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id=OBJECT_ID('dbo.Facts') AND name='AiSummaryAt')
+    ALTER TABLE [dbo].[Facts] ADD [AiSummaryAt] DATETIME2 NULL;
+IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id=OBJECT_ID('dbo.Facts') AND name='AiSummarySource')
+    ALTER TABLE [dbo].[Facts] ADD [AiSummarySource] NVARCHAR(50) NULL;
+GO</code></pre>
+
+<h3>1F — AI columns on <code>dbo.Assessment</code> (future increments — add now)</h3>
+<pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id=OBJECT_ID('dbo.Assessment') AND name='AiPointOfImpact')
+    ALTER TABLE [dbo].[Assessment] ADD [AiPointOfImpact] NVARCHAR(MAX) NULL;
+IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id=OBJECT_ID('dbo.Assessment') AND name='AiRightOfWaySummary')
+    ALTER TABLE [dbo].[Assessment] ADD [AiRightOfWaySummary] NVARCHAR(MAX) NULL;
+IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id=OBJECT_ID('dbo.Assessment') AND name='AiSpeedDutySummary')
+    ALTER TABLE [dbo].[Assessment] ADD [AiSpeedDutySummary] NVARCHAR(MAX) NULL;
+IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id=OBJECT_ID('dbo.Assessment') AND name='AiLookoutDutySummary')
+    ALTER TABLE [dbo].[Assessment] ADD [AiLookoutDutySummary] NVARCHAR(MAX) NULL;
+IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id=OBJECT_ID('dbo.Assessment') AND name='AiAvoidanceDutySummary')
+    ALTER TABLE [dbo].[Assessment] ADD [AiAvoidanceDutySummary] NVARCHAR(MAX) NULL;
+IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id=OBJECT_ID('dbo.Assessment') AND name='AiOverallDutyBreachSummary')
+    ALTER TABLE [dbo].[Assessment] ADD [AiOverallDutyBreachSummary] NVARCHAR(MAX) NULL;
+GO</code></pre>
+
+<!-- ══════════════════ NEW FILES ══════════════════ -->
+<h2>New C# Files — Create exactly as shown</h2>
+
+<!-- ── DTOs ── -->
+<div class="file-header" id="dto">
+  <span class="badge new">NEW</span>
+  <span class="file-path">CTK.Common\DTOs\AskCtk\AskCtkDtos.cs</span>
+</div>
+<div class="note"><p>Create the folder <code>CTK.Common\DTOs\AskCtk\</code> first. This file defines all data transfer objects for the Ask CTK pipeline.</p></div>
+<pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>namespace CTK.Common.DTOs.AskCtk;
+
+public class EnqueueJobRequest
+{
+    public int      CompanyId       { get; set; }
+    public int      ToolkitId       { get; set; }
+    public string   SourceTableName { get; set; } = string.Empty;
+    public long     SourceRecordId  { get; set; }
+    public string   AiFunctionType  { get; set; } = string.Empty;
+    public string   AiRequestType   { get; set; } = string.Empty;
+    public string   PromptTypeKey   { get; set; } = string.Empty;
+    public string   OutputFormat    { get; set; } = "TEXT";
+    public DateTime NotBeforeAt     { get; set; }
+}
+
+public class QueuedJobDto
+{
+    public long      QueueId         { get; set; }
+    public int       CompanyId       { get; set; }
+    public int       ToolkitId       { get; set; }
+    public string    SourceTableName { get; set; } = string.Empty;
+    public long      SourceRecordId  { get; set; }
+    public string    AiFunctionType  { get; set; } = string.Empty;
+    public string    AiRequestType   { get; set; } = string.Empty;
+    public string    PromptTypeKey   { get; set; } = string.Empty;
+    public string    OutputFormat    { get; set; } = "TEXT";
+    public string    Status          { get; set; } = string.Empty;
+    public int       RetryCount      { get; set; }
+    public int       MaxRetryCount   { get; set; }
+    public DateTime? NotBeforeAt     { get; set; }
+    public DateTime  CreatedAt       { get; set; }
+}
+
+public class AiCompleteRequest
+{
+    public string  SystemInstruction { get; set; } = string.Empty;
+    public string  Prompt            { get; set; } = string.Empty;
+    public string? ContextJson       { get; set; }
+    public string  OutputFormat      { get; set; } = "TEXT";
+}
+
+public class AiCompleteResponse
+{
+    public string Text         { get; set; } = string.Empty;
+    public int?   InputTokens  { get; set; }
+    public int?   OutputTokens { get; set; }
+}
+
+public class StatementContextDto
+{
+    public int     FactsId         { get; set; }
+    public int     ToolkitId       { get; set; }
+    public int     CompanyId       { get; set; }
+    public string? PartyName       { get; set; }
+    public string? FactDescription { get; set; }
+    public string? RightofWay      { get; set; }
+    public string? LookOut         { get; set; }
+    public string? Avoidance       { get; set; }
+    public string? Speed           { get; set; }
+    public string? PointofImpact   { get; set; }
+}</code></pre>
+
+<!-- ── IAskCtkQueueRepository ── -->
+<div class="file-header" id="iqueue-repo">
+  <span class="badge new">NEW</span>
+  <span class="file-path">CTK.Core\Interfaces\IAskCtkQueueRepository.cs</span>
+</div>
+<pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>using CTK.Common.DTOs.AskCtk;
+
+namespace CTK.Core.Interfaces;
+
+public interface IAskCtkQueueRepository
+{
+    /// Inserts a job only if no PENDING/PROCESSING/RETRY job exists for the same
+    /// CompanyId+ToolkitId+SourceTableName+SourceRecordId+AiRequestType. Returns QueueId or null (dedup skip).
+    Task&lt;long?&gt; EnqueueAsync(EnqueueJobRequest request);
+
+    /// Atomically claims the next eligible job (PENDING/RETRY where timing allows). Returns null if queue empty.
+    Task&lt;QueuedJobDto?&gt; ClaimNextAsync(string workerId);
+
+    /// Marks job COMPLETED, stores AI response + token counts.
+    Task CompleteAsync(long queueId, string responseText, int? inputTokens, int? outputTokens);
+
+    /// Increments RetryCount. Sets Status=RETRY (with NextRetryAt) if retryable and under limit, else FAILED.
+    Task FailAsync(long queueId, string errorCode, string errorMessage, bool isRetryable, int retryDelayMinutes);
+
+    /// Appends a row to AskCtk_AuditLog.
+    Task WriteAuditAsync(long queueId, int companyId, int toolkitId, string eventType, string? message, string? metadataJson = null);
+}</code></pre>
+
+<!-- ── AskCtkQueueRepository ── -->
+<div class="file-header" id="queue-repo">
+  <span class="badge new">NEW</span>
+  <span class="file-path">CTK.Infrastructure\Repositories\AskCtkQueueRepository.cs</span>
+</div>
+<pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>using System.Data;
+using CTK.Common.DTOs.AskCtk;
+using CTK.Core.Interfaces;
+using Dapper;
+
+namespace CTK.Infrastructure.Repositories;
+
+public class AskCtkQueueRepository : IAskCtkQueueRepository
+{
+    private readonly IDbConnection _conn;
+    private readonly IDbTransaction? _transaction;
+
+    public AskCtkQueueRepository(IDbConnection conn, IDbTransaction? transaction = null)
+    {
+        _conn = conn;
+        _transaction = transaction;
+    }
+
+    public async Task&lt;long?&gt; EnqueueAsync(EnqueueJobRequest request)
+    {
+        // INSERT only when no active job exists for this exact record+type combination.
+        // This is the dedup guard — prevents duplicate AI work when adjuster saves quickly.
+        const string sql = """
+            INSERT INTO [dbo].[AutoAskCTKUpdateQueue]
+                ([CompanyId],[ToolkitId],[SourceTableName],[SourceRecordId],
+                 [AiFunctionType],[AiRequestType],[PromptTypeKey],[OutputFormat],
+                 [Status],[NotBeforeAt])
+            OUTPUT INSERTED.[QueueId]
+            SELECT @CompanyId, @ToolkitId, @SourceTableName, @SourceRecordId,
+                   @AiFunctionType, @AiRequestType, @PromptTypeKey, @OutputFormat,
+                   'PENDING', @NotBeforeAt
+            WHERE NOT EXISTS (
+                SELECT 1 FROM [dbo].[AutoAskCTKUpdateQueue]
+                WHERE [CompanyId]       = @CompanyId
+                  AND [ToolkitId]       = @ToolkitId
+                  AND [SourceTableName] = @SourceTableName
+                  AND [SourceRecordId]  = @SourceRecordId
+                  AND [AiRequestType]   = @AiRequestType
+                  AND [Status] IN ('PENDING','PROCESSING','RETRY')
+            )
+            """;
+
+        return await _conn.QueryFirstOrDefaultAsync&lt;long?&gt;(sql, new
+        {
+            request.CompanyId,
+            request.ToolkitId,
+            request.SourceTableName,
+            request.SourceRecordId,
+            request.AiFunctionType,
+            request.AiRequestType,
+            request.PromptTypeKey,
+            request.OutputFormat,
+            request.NotBeforeAt
+        }, transaction: _transaction);
+    }
+
+    public async Task&lt;QueuedJobDto?&gt; ClaimNextAsync(string workerId)
+    {
+        // Two-step: SELECT with UPDLOCK to atomically claim the row, then UPDATE status.
+        // READPAST skips locked rows so concurrent workers don't block each other.
+        const string sql = """
+            DECLARE @id BIGINT;
+
+            SELECT TOP 1 @id = [QueueId]
+            FROM [dbo].[AutoAskCTKUpdateQueue] WITH (UPDLOCK, READPAST, ROWLOCK)
+            WHERE [Status] IN ('PENDING', 'RETRY')
+              AND (
+                  ([Status] = 'PENDING' AND ([NotBeforeAt] IS NULL OR [NotBeforeAt] &lt;= SYSUTCDATETIME()))
+                  OR ([Status] = 'RETRY' AND ([NextRetryAt] IS NULL OR [NextRetryAt] &lt;= SYSUTCDATETIME()))
+              )
+            ORDER BY [Priority] ASC, [CreatedAt] ASC;
+
+            IF @id IS NOT NULL
+            BEGIN
+                UPDATE [dbo].[AutoAskCTKUpdateQueue]
+                SET [Status]              = 'PROCESSING',
+                    [LockedBy]            = @WorkerId,
+                    [LockedAt]            = SYSUTCDATETIME(),
+                    [ProcessingStartedAt] = SYSUTCDATETIME(),
+                    [UpdatedAt]           = SYSUTCDATETIME()
+                WHERE [QueueId] = @id;
+            END
+
+            SELECT [QueueId],[CompanyId],[ToolkitId],[SourceTableName],[SourceRecordId],
+                   [AiFunctionType],[AiRequestType],[PromptTypeKey],[OutputFormat],
+                   [Status],[RetryCount],[MaxRetryCount],[NotBeforeAt],[CreatedAt]
+            FROM [dbo].[AutoAskCTKUpdateQueue]
+            WHERE [QueueId] = @id;
+            """;
+
+        return await _conn.QueryFirstOrDefaultAsync&lt;QueuedJobDto&gt;(sql,
+            new { WorkerId = workerId }, transaction: _transaction);
+    }
+
+    public async Task CompleteAsync(long queueId, string responseText, int? inputTokens, int? outputTokens)
+    {
+        const string sql = """
+            UPDATE [dbo].[AutoAskCTKUpdateQueue]
+            SET [Status]                = 'COMPLETED',
+                [AiResponseRaw]         = @ResponseText,
+                [AiResponseNormalized]  = @ResponseText,
+                [InputTokenCount]       = @InputTokens,
+                [OutputTokenCount]      = @OutputTokens,
+                [ProcessingCompletedAt] = SYSUTCDATETIME(),
+                [UpdatedAt]             = SYSUTCDATETIME()
+            WHERE [QueueId] = @QueueId
+            """;
+
+        await _conn.ExecuteAsync(sql, new
+        {
+            QueueId = queueId,
+            ResponseText = responseText,
+            InputTokens = inputTokens,
+            OutputTokens = outputTokens
+        }, transaction: _transaction);
+    }
+
+    public async Task FailAsync(long queueId, string errorCode, string errorMessage, bool isRetryable, int retryDelayMinutes)
+    {
+        // RetryCount is incremented first, then compared to MaxRetryCount.
+        // If retryable and still under limit → RETRY with NextRetryAt set.
+        // Otherwise → FAILED permanently.
+        const string sql = """
+            UPDATE [dbo].[AutoAskCTKUpdateQueue]
+            SET [RetryCount]   = [RetryCount] + 1,
+                [ErrorCode]    = @ErrorCode,
+                [ErrorMessage] = @ErrorMessage,
+                [Status]       = CASE
+                    WHEN @IsRetryable = 1 AND ([RetryCount] + 1) &lt; [MaxRetryCount] THEN 'RETRY'
+                    ELSE 'FAILED'
+                END,
+                [NextRetryAt]  = CASE
+                    WHEN @IsRetryable = 1 AND ([RetryCount] + 1) &lt; [MaxRetryCount]
+                    THEN DATEADD(MINUTE, @RetryDelayMinutes, SYSUTCDATETIME())
+                    ELSE NULL
+                END,
+                [UpdatedAt]    = SYSUTCDATETIME()
+            WHERE [QueueId] = @QueueId
+            """;
+
+        await _conn.ExecuteAsync(sql, new
+        {
+            QueueId = queueId,
+            ErrorCode = errorCode,
+            ErrorMessage = errorMessage,
+            IsRetryable = isRetryable,
+            RetryDelayMinutes = retryDelayMinutes
+        }, transaction: _transaction);
+    }
+
+    public async Task WriteAuditAsync(long queueId, int companyId, int toolkitId,
+        string eventType, string? message, string? metadataJson = null)
+    {
+        const string sql = """
+            INSERT INTO [dbo].[AskCtk_AuditLog]
+                ([QueueId],[CompanyId],[ToolkitId],[EventType],[Message],[MetadataJson])
+            VALUES (@QueueId, @CompanyId, @ToolkitId, @EventType, @Message, @MetadataJson)
+            """;
+
+        await _conn.ExecuteAsync(sql, new
+        {
+            QueueId = queueId,
+            CompanyId = companyId,
+            ToolkitId = toolkitId,
+            EventType = eventType,
+            Message = message,
+            MetadataJson = metadataJson
+        }, transaction: _transaction);
+    }
+}</code></pre>
+
+<!-- ── IClaimContextBuilder ── -->
+<div class="file-header" id="icontext">
+  <span class="badge new">NEW</span>
+  <span class="file-path">CTK.Application\AskCtk\IClaimContextBuilder.cs</span>
+</div>
+<div class="note"><p>Create folder <code>CTK.Application\AskCtk\</code> — all Ask CTK application-layer files live here.</p></div>
+<pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>using CTK.Common.DTOs.AskCtk;
+
+namespace CTK.Application.AskCtk;
+
+public interface IClaimContextBuilder
+{
+    Task&lt;StatementContextDto?&gt; BuildStatementContextAsync(int factsId, int toolkitId, int companyId);
+}</code></pre>
+
+<!-- ── StatementContextBuilder ── -->
+<div class="file-header" id="context-builder">
+  <span class="badge new">NEW</span>
+  <span class="file-path">CTK.Application\AskCtk\StatementContextBuilder.cs</span>
+</div>
+<pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>using CTK.Common.DTOs.AskCtk;
+using CTK.Core.Interfaces;
+
+namespace CTK.Application.AskCtk;
+
+public class StatementContextBuilder : IClaimContextBuilder
+{
+    private readonly IUnitOfWork _uow;
+
+    public StatementContextBuilder(IUnitOfWork uow)
+    {
+        _uow = uow;
+    }
+
+    public async Task&lt;StatementContextDto?&gt; BuildStatementContextAsync(int factsId, int toolkitId, int companyId)
+    {
+        return await _uow.Facts.GetStatementContextAsync(factsId, toolkitId, companyId);
+    }
+}</code></pre>
+
+<!-- ── IAskCtkAiClient ── -->
+<div class="file-header" id="iai-client">
+  <span class="badge new">NEW</span>
+  <span class="file-path">CTK.Application\AskCtk\IAskCtkAiClient.cs</span>
+</div>
+<pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>using CTK.Common.DTOs.AskCtk;
+
+namespace CTK.Application.AskCtk;
+
+public interface IAskCtkAiClient
+{
+    Task&lt;AiCompleteResponse&gt; CompleteAsync(AiCompleteRequest request, CancellationToken ct = default);
+}</code></pre>
+
+<!-- ── MockAskCtkAiClient ── -->
+<div class="file-header" id="mock-client">
+  <span class="badge new">NEW</span>
+  <span class="file-path">CTK.Application\AskCtk\MockAskCtkAiClient.cs</span>
+</div>
+<div class="note"><p>Used when <code>AskCtk:UseMockAiClient = true</code> in appsettings. Returns deterministic text for Sprint 1 testing without calling Gemini.</p></div>
+<pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>using CTK.Common.DTOs.AskCtk;
+
+namespace CTK.Application.AskCtk;
+
+public class MockAskCtkAiClient : IAskCtkAiClient
+{
+    public Task&lt;AiCompleteResponse&gt; CompleteAsync(AiCompleteRequest request, CancellationToken ct = default)
+    {
+        var preview = request.Prompt.Length &gt; 120
+            ? request.Prompt[..120] + "..."
+            : request.Prompt;
+
+        return Task.FromResult(new AiCompleteResponse
+        {
+            Text = $"[MOCK AI SUMMARY] This party statement indicates the vehicle was traveling at a moderate speed approaching the intersection. The driver states they had the right of way and applied brakes upon seeing the other vehicle. No injuries were reported at the scene. Note: This is a mock AI response for testing. Prompt preview: {preview}",
+            InputTokens  = 150,
+            OutputTokens = 60
+        });
+    }
+}</code></pre>
+
+<!-- ── AskCtkMcpClient ── -->
+<div class="file-header" id="mcp-client">
+  <span class="badge new">NEW</span>
+  <span class="file-path">CTK.Infrastructure\ExternalServices\AskCtkMcpClient.cs</span>
+</div>
+<div class="note"><p>Calls <code>POST /ai/complete</code> on ctk-mcp-nls. Registered via <code>AddHttpClient&lt;IAskCtkAiClient, AskCtkMcpClient&gt;()</code> so DI injects the typed <code>HttpClient</code>.</p></div>
+<pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>using System.Net.Http.Json;
+using System.Text.Json;
+using CTK.Application.AskCtk;
+using CTK.Common.DTOs.AskCtk;
+using Microsoft.Extensions.Configuration;
+
+namespace CTK.Infrastructure.ExternalServices;
+
+public class AskCtkMcpClient : IAskCtkAiClient
+{
+    private readonly HttpClient _http;
+    private readonly string _serviceKey;
+    private readonly string _baseUrl;
+
+    private static readonly JsonSerializerOptions _json = new(JsonSerializerDefaults.Web);
+
+    public AskCtkMcpClient(HttpClient http, IConfiguration config)
+    {
+        _http       = http;
+        _serviceKey = config["AskCtk:ServiceKey"]
+            ?? throw new InvalidOperationException("AskCtk:ServiceKey is not configured.");
+        _baseUrl    = config["AskCtk:McpBaseUrl"] ?? "http://localhost:8000";
+    }
+
+    public async Task&lt;AiCompleteResponse&gt; CompleteAsync(AiCompleteRequest request, CancellationToken ct = default)
+    {
+        using var req = new HttpRequestMessage(HttpMethod.Post, $"{_baseUrl}/ai/complete");
+        req.Headers.Add("X-Service-Key", _serviceKey);
+        req.Content = JsonContent.Create(new
+        {
+            system_instruction = request.SystemInstruction,
+            prompt             = request.Prompt,
+            context_json       = request.ContextJson,
+            output_format      = request.OutputFormat
+        }, options: _json);
+
+        using var resp = await _http.SendAsync(req, ct);
+        resp.EnsureSuccessStatusCode();
+
+        var result = await resp.Content.ReadFromJsonAsync&lt;AiCompleteResponse&gt;(
+            cancellationToken: ct);
+
+        return result ?? new AiCompleteResponse { Text = string.Empty };
+    }
+}</code></pre>
+
+<!-- ── IAiResultWriter ── -->
+<div class="file-header" id="iwriter">
+  <span class="badge new">NEW</span>
+  <span class="file-path">CTK.Application\AskCtk\IAiResultWriter.cs</span>
+</div>
+<pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>using CTK.Common.DTOs.AskCtk;
+
+namespace CTK.Application.AskCtk;
+
+/// Each writer handles one AiRequestType and knows which DB column to write the AI result into.
+/// To support a new AI integration point, implement this interface and register it in DI.
+public interface IAiResultWriter
+{
+    string AiRequestType { get; }
+    Task WriteAsync(QueuedJobDto job, string aiText, CancellationToken ct = default);
+}</code></pre>
+
+<!-- ── IAiResultWriterRegistry ── -->
+<div class="file-header" id="iregistry">
+  <span class="badge new">NEW</span>
+  <span class="file-path">CTK.Application\AskCtk\IAiResultWriterRegistry.cs</span>
+</div>
+<pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>namespace CTK.Application.AskCtk;
+
+public interface IAiResultWriterRegistry
+{
+    IAiResultWriter? GetWriter(string aiRequestType);
+}</code></pre>
+
+<!-- ── AiResultWriterRegistry ── -->
+<div class="file-header" id="registry">
+  <span class="badge new">NEW</span>
+  <span class="file-path">CTK.Application\AskCtk\AiResultWriterRegistry.cs</span>
+</div>
+<pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>namespace CTK.Application.AskCtk;
+
+public class AiResultWriterRegistry : IAiResultWriterRegistry
+{
+    private readonly Dictionary&lt;string, IAiResultWriter&gt; _writers;
+
+    public AiResultWriterRegistry(IEnumerable&lt;IAiResultWriter&gt; writers)
+    {
+        _writers = writers.ToDictionary(w =&gt; w.AiRequestType, w =&gt; w);
+    }
+
+    public IAiResultWriter? GetWriter(string aiRequestType)
+        =&gt; _writers.TryGetValue(aiRequestType, out var w) ? w : null;
+}</code></pre>
+
+<!-- ── StatementSummaryWriter ── -->
+<div class="file-header" id="stmt-writer">
+  <span class="badge new">NEW</span>
+  <span class="file-path">CTK.Application\AskCtk\StatementSummaryWriter.cs</span>
+</div>
+<pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>using CTK.Common.DTOs.AskCtk;
+using CTK.Core.Interfaces;
+
+namespace CTK.Application.AskCtk;
+
+/// Writes Gemini's statement summary to Facts.AiSummary / AiSummaryAt / AiSummarySource.
+public class StatementSummaryWriter : IAiResultWriter
+{
+    private readonly IUnitOfWork _uow;
+
+    public StatementSummaryWriter(IUnitOfWork uow)
+    {
+        _uow = uow;
+    }
+
+    public string AiRequestType =&gt; "STATEMENT_SUMMARY";
+
+    public async Task WriteAsync(QueuedJobDto job, string aiText, CancellationToken ct = default)
+    {
+        await _uow.Facts.WriteAiSummaryAsync((int)job.SourceRecordId, aiText);
+    }
+}</code></pre>
+
+<!-- ── AskCtkJobProcessor ── -->
+<div class="file-header" id="processor">
+  <span class="badge new">NEW</span>
+  <span class="file-path">CTK.Application\AskCtk\AskCtkJobProcessor.cs</span>
+</div>
+<div class="note"><p>This is the orchestrator. It is called by the background worker for each job. It is registered as <code>AddScoped</code> — each worker tick resolves a fresh scope.</p></div>
+<pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>using CTK.Common.DTOs.AskCtk;
+using CTK.Core.Interfaces;
+using Microsoft.Extensions.Logging;
+
+namespace CTK.Application.AskCtk;
+
+public class AskCtkJobProcessor
+{
+    private readonly IUnitOfWork _uow;
+    private readonly IPromptRepository _promptRepo;
+    private readonly IClaimContextBuilder _contextBuilder;
+    private readonly IAskCtkAiClient _aiClient;
+    private readonly IAiResultWriterRegistry _writerRegistry;
+    private readonly ILogger&lt;AskCtkJobProcessor&gt; _logger;
+
+    public AskCtkJobProcessor(
+        IUnitOfWork uow,
+        IPromptRepository promptRepo,
+        IClaimContextBuilder contextBuilder,
+        IAskCtkAiClient aiClient,
+        IAiResultWriterRegistry writerRegistry,
+        ILogger&lt;AskCtkJobProcessor&gt; logger)
+    {
+        _uow            = uow;
+        _promptRepo     = promptRepo;
+        _contextBuilder = contextBuilder;
+        _aiClient       = aiClient;
+        _writerRegistry = writerRegistry;
+        _logger         = logger;
+    }
+
+    public async Task ProcessJobAsync(QueuedJobDto job, CancellationToken ct)
+    {
+        _logger.LogInformation(
+            "[AskCtk] Processing job {QueueId} type={AiRequestType} record={SourceRecordId}",
+            job.QueueId, job.AiRequestType, job.SourceRecordId);
+
+        try
+        {
+            // 1. Load prompt template from DB (uses existing PromptRepository.ResolveAsync)
+            var prompt = await _promptRepo.ResolveAsync(job.PromptTypeKey, job.CompanyId);
+            if (prompt == null)
+                throw new InvalidOperationException(
+                    $"Prompt not found for key '{job.PromptTypeKey}' (companyId={job.CompanyId})");
+
+            // 2. Build context (fetches Facts record + party name)
+            var ctx = await _contextBuilder.BuildStatementContextAsync(
+                (int)job.SourceRecordId, job.ToolkitId, job.CompanyId);
+            if (ctx == null)
+                throw new InvalidOperationException(
+                    $"Context not found for Facts {job.SourceRecordId} toolkit={job.ToolkitId}");
+
+            // 3. Render prompt (replace {{placeholders}} with actual values)
+            var renderedPrompt = RenderPrompt(prompt.PromptText, ctx);
+
+            // 4. Call AI (Gemini via ctk-mcp-nls, or mock)
+            var aiResp = await _aiClient.CompleteAsync(new AiCompleteRequest
+            {
+                SystemInstruction = "You are a senior auto liability claims analyst. Be concise and factual.",
+                Prompt            = renderedPrompt,
+                OutputFormat      = job.OutputFormat
+            }, ct);
+
+            if (string.IsNullOrWhiteSpace(aiResp.Text))
+                throw new InvalidOperationException("AI returned an empty response.");
+
+            // 5. Find the correct writer for this AiRequestType
+            var writer = _writerRegistry.GetWriter(job.AiRequestType)
+                ?? throw new InvalidOperationException(
+                    $"No IAiResultWriter registered for AiRequestType '{job.AiRequestType}'");
+
+            // 6. Write AI result to DB column
+            await writer.WriteAsync(job, aiResp.Text, ct);
+
+            // 7. Mark job COMPLETED + write audit row
+            await _uow.AskCtkQueue.CompleteAsync(
+                job.QueueId, aiResp.Text, aiResp.InputTokens, aiResp.OutputTokens);
+            await _uow.AskCtkQueue.WriteAuditAsync(
+                job.QueueId, job.CompanyId, job.ToolkitId, "COMPLETED",
+                $"Wrote {aiResp.Text.Length} chars to {job.SourceTableName}[{job.SourceRecordId}]");
+
+            _logger.LogInformation("[AskCtk] Job {QueueId} completed ({Chars} chars)",
+                job.QueueId, aiResp.Text.Length);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "[AskCtk] Job {QueueId} failed: {Message}",
+                job.QueueId, ex.Message);
+
+            // Non-retryable: config errors, missing records, empty prompt
+            bool isRetryable = ex is not InvalidOperationException;
+            int delayMinutes = job.RetryCount switch { 0 => 1, 1 => 5, _ => 15 };
+
+            await _uow.AskCtkQueue.FailAsync(
+                job.QueueId, ex.GetType().Name, ex.Message, isRetryable, delayMinutes);
+            await _uow.AskCtkQueue.WriteAuditAsync(
+                job.QueueId, job.CompanyId, job.ToolkitId, "FAILED", ex.Message);
+        }
+    }
+
+    private static string RenderPrompt(string template, StatementContextDto ctx) =&gt;
+        template
+            .Replace("{{party_name}}",      ctx.PartyName       ?? "Unknown")
+            .Replace("{{fact_description}}", ctx.FactDescription ?? "N/A")
+            .Replace("{{right_of_way}}",    ctx.RightofWay      ?? "N/A")
+            .Replace("{{look_out}}",        ctx.LookOut         ?? "N/A")
+            .Replace("{{avoidance}}",       ctx.Avoidance       ?? "N/A")
+            .Replace("{{speed}}",           ctx.Speed           ?? "N/A")
+            .Replace("{{point_of_impact}}", ctx.PointofImpact   ?? "N/A");
+}</code></pre>
+
+<!-- ── ProcessAskCtkQueueService ── -->
+<div class="file-header" id="worker">
+  <span class="badge new">NEW</span>
+  <span class="file-path">CTK.API\HostedServices\ProcessAskCtkQueueService.cs</span>
+</div>
+<div class="warn"><p>CRITICAL: <code>SetTenantId</code> MUST be called before any IUnitOfWork/DbContext access. There is no HTTP request in a background worker, so the tenant ID is read from <code>appsettings.json → Tenant:CompanyId</code>.</p></div>
+<pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>using CTK.Application.AskCtk;
+using CTK.Application.Interfaces;
+using CTK.Core.Interfaces;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+
+namespace CTK.API.HostedServices;
+
+public class ProcessAskCtkQueueService : BackgroundService
+{
+    private readonly IServiceScopeFactory _scopeFactory;
+    private readonly ILogger&lt;ProcessAskCtkQueueService&gt; _logger;
+    private readonly TimeSpan _interval = TimeSpan.FromSeconds(30);
+
+    // Unique worker ID — used to tag rows claimed by this instance
+    private readonly string _workerId =
+        $"worker-{Environment.MachineName}-{Guid.NewGuid():N}";
+
+    public ProcessAskCtkQueueService(
+        IServiceScopeFactory scopeFactory,
+        ILogger&lt;ProcessAskCtkQueueService&gt; logger)
+    {
+        _scopeFactory = scopeFactory;
+        _logger       = logger;
+    }
+
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    {
+        _logger.LogInformation("[AskCtk Worker] Started. WorkerId={WorkerId}", _workerId);
+
+        while (!stoppingToken.IsCancellationRequested)
+        {
+            try
+            {
+                await ProcessNextJobAsync(stoppingToken);
+            }
+            catch (Exception ex) when (!stoppingToken.IsCancellationRequested)
+            {
+                _logger.LogError(ex, "[AskCtk Worker] Unhandled error in tick");
+            }
+
+            await Task.Delay(_interval, stoppingToken);
+        }
+
+        _logger.LogInformation("[AskCtk Worker] Stopped.");
+    }
+
+    private async Task ProcessNextJobAsync(CancellationToken ct)
+    {
+        using var scope = _scopeFactory.CreateScope();
+
+        // ── CRITICAL: Set tenant before any DB access ──────────────────────
+        // Each deployed replica serves exactly one company. CompanyId comes from
+        // appsettings.json → Tenant:CompanyId (set per deployment).
+        var config        = scope.ServiceProvider.GetRequiredService&lt;IConfiguration&gt;();
+        var tenantProvider = scope.ServiceProvider.GetRequiredService&lt;ITenantProvider&gt;();
+        var companyId     = config.GetValue&lt;int&gt;("Tenant:CompanyId");
+        tenantProvider.SetTenantId(companyId.ToString());
+        // ────────────────────────────────────────────────────────────────────
+
+        var uow = scope.ServiceProvider.GetRequiredService&lt;IUnitOfWork&gt;();
+        var job = await uow.AskCtkQueue.ClaimNextAsync(_workerId);
+
+        if (job == null)
+            return; // Queue empty — nothing to do this tick
+
+        _logger.LogInformation(
+            "[AskCtk Worker] Claimed job {QueueId} type={AiRequestType}",
+            job.QueueId, job.AiRequestType);
+
+        var processor = scope.ServiceProvider.GetRequiredService&lt;AskCtkJobProcessor&gt;();
+        await processor.ProcessJobAsync(job, ct);
+    }
+}</code></pre>
+
+<!-- ══════════════════ EDITED FILES ══════════════════ -->
+<h2>Edited C# Files</h2>
+
+<!-- ── IUnitOfWork ── -->
+<h3 id="edit-iuow">Edit: <code>CTK.Core\Interfaces\IUnitOfWork.cs</code></h3>
+<p>Add one line after <code>IAccessLogRepository AccessLog</code>:</p>
+<div class="diff-add"><code>IAskCtkQueueRepository AskCtkQueue { get; }</code></div>
+<p>Also add the using at the top:</p>
+<div class="diff-add"><code>// (already in file) using CTK.Core.Interfaces.AutoLia;<br>// No additional using needed — IAskCtkQueueRepository is in CTK.Core.Interfaces</code></div>
+
+<p>Full property block after the edit (place after <code>IAccessLogRepository AccessLog { get; }</code>):</p>
+<pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>    IAccessLogRepository   AccessLog   { get; }
+    IAskCtkQueueRepository AskCtkQueue { get; }  // ← ADD THIS LINE</code></pre>
+
+<!-- ── UnitOfWork ── -->
+<h3 id="edit-uow">Edit: <code>CTK.Infrastructure\UnitOfWork\UnitOfWork.cs</code></h3>
+<p>Three changes: (A) add field, (B) add property, (C) null-reset in <code>BeginAsync()</code>.</p>
+
+<h4>A — Add private field (after the <code>_accessLog</code> field)</h4>
+<pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>    private IAccessLogRepository?   _accessLog;
+    private IAskCtkQueueRepository? _askCtkQueue;  // ← ADD</code></pre>
+
+<h4>B — Add property (after the <code>AccessLog</code> property)</h4>
+<pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>    public IAccessLogRepository AccessLog =>
+        _accessLog ??= new AccessLogRepository(GetTenantConnection(), _tenantTx);
+
+    public IAskCtkQueueRepository AskCtkQueue =>        // ← ADD
+        _askCtkQueue ??= new AskCtkQueueRepository(GetTenantConnection(), _tenantTx);</code></pre>
+
+<h4>C — Null-reset in <code>BeginAsync()</code> (after <code>_accessLog = null;</code>)</h4>
+<pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>        _accessLog    = null;
+        _askCtkQueue  = null;  // ← ADD</code></pre>
+
+<h4>D — Add using at top of file</h4>
+<pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>using CTK.Infrastructure.Repositories;  // ← ADD (for AskCtkQueueRepository)</code></pre>
+
+<!-- ── IFactsRepository ── -->
+<h3 id="edit-ifactsrepo">Edit: <code>CTK.Core\Interfaces\AutoLia\IFactsRepository.cs</code></h3>
+<p>Add two methods at the end of the interface:</p>
+<pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>    // Ask CTK — fetch context for AI statement summary
+    Task&lt;StatementContextDto?&gt; GetStatementContextAsync(int factsId, int toolkitId, int companyId);
+
+    // Ask CTK — write AI summary back to Facts table
+    Task WriteAiSummaryAsync(int factsId, string aiSummary);</code></pre>
+<p>Add using at top:</p>
+<pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>using CTK.Common.DTOs.AskCtk;</code></pre>
+
+<!-- ── FactsRepository ── -->
+<h3 id="edit-factsrepo">Edit: <code>CTK.Infrastructure\Repositories\AutoLia\FactsRepository.cs</code></h3>
+<p>Add two method implementations at the end of the class:</p>
+<pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>    // Ask CTK — load Facts record + party name for AI context building
+    public async Task&lt;StatementContextDto?&gt; GetStatementContextAsync(int factsId, int toolkitId, int companyId)
+    {
+        // CompanyId guard via JOIN through Claim → prevents cross-tenant data leak
+        const string sql = """
+            SELECT
+                f.[FactsID]         AS FactsId,
+                f.[ToolkitID]       AS ToolkitId,
+                c.[CompanyID]       AS CompanyId,
+                ap.[Witnesses]      AS PartyName,
+                f.[FactDescription],
+                f.[RightofWay],
+                f.[LookOut],
+                f.[Avoidance],
+                f.[Speed],
+                f.[PointofImpact]
+            FROM [dbo].[Facts] f WITH (NOLOCK)
+            INNER JOIN [tmfsql].[Claim] c WITH (NOLOCK)
+                ON c.[ToolkitID] = f.[ToolkitID]
+            LEFT JOIN [dbo].[AutoParty] ap WITH (NOLOCK)
+                ON ap.[ToolkitID] = f.[ToolkitID]
+               AND ap.[PartyType] = f.[PartyType]
+            WHERE f.[FactsID]  = @FactsId
+              AND f.[ToolkitID] = @ToolkitId
+              AND c.[CompanyID] = @CompanyId
+            """;
+
+        return await _conn.QueryFirstOrDefaultAsync&lt;StatementContextDto&gt;(sql,
+            new { FactsId = factsId, ToolkitId = toolkitId, CompanyId = companyId },
+            transaction: _transaction);
+    }
+
+    // Ask CTK — write AI summary result to Facts table
+    public async Task WriteAiSummaryAsync(int factsId, string aiSummary)
+    {
+        const string sql = """
+            UPDATE [dbo].[Facts]
+            SET [AiSummary]       = @AiSummary,
+                [AiSummaryAt]     = SYSUTCDATETIME(),
+                [AiSummarySource] = 'ASK_CTK'
+            WHERE [FactsID] = @FactsId
+            """;
+
+        await _conn.ExecuteAsync(sql,
+            new { FactsId = factsId, AiSummary = aiSummary },
+            transaction: _transaction);
+    }</code></pre>
+<p>Add using at top:</p>
+<pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>using CTK.Common.DTOs.AskCtk;</code></pre>
+
+<!-- ── IFactsService ── -->
+<h3 id="edit-ifacts">Edit: <code>CTK.Application\Interfaces\AutoLia\IFactsService.cs</code></h3>
+<p>Change the signature of <code>UpdateFactAsync</code> to accept <code>companyId</code>:</p>
+<div class="diff-rem"><code>Task&lt;ServiceResponse&lt;bool&gt;&gt; UpdateFactAsync(FactDto dto, int userId);</code></div>
+<div class="diff-add"><code>Task&lt;ServiceResponse&lt;bool&gt;&gt; UpdateFactAsync(FactDto dto, int userId, int companyId);</code></div>
+
+<!-- ── FactsService ── -->
+<h3 id="edit-facts">Edit: <code>CTK.Application\Services\AutoLia\FactsService.cs</code></h3>
+<p>Replace the existing <code>UpdateFactAsync</code> method (currently lines ~123–132) with the transaction-wrapped version that enqueues:</p>
+<div class="diff-rem"><code>public async Task&lt;ServiceResponse&lt;bool&gt;&gt; UpdateFactAsync(FactDto dto, int userId)<br>{<br>    var response = new ServiceResponse&lt;bool&gt;();<br>    dto.UserID = userId;<br>    dto.ActivityDate = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss");<br>    await _uow.Facts.UpdateFactAsync(dto);<br>    return response.Ok(true);<br>}</code></div>
+<div class="diff-add">
+<pre style="background:transparent;border:none;padding:4px 0;margin:0;"><code>public async Task&lt;ServiceResponse&lt;bool&gt;&gt; UpdateFactAsync(FactDto dto, int userId, int companyId)
+{
+    var response = new ServiceResponse&lt;bool&gt;();
+    dto.UserID = userId;
+    dto.ActivityDate = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss");
+
+    await _uow.BeginAsync();
+    try
+    {
+        await _uow.Facts.UpdateFactAsync(dto);
+
+        // Enqueue AI job — runs in background, never blocks this save.
+        // NotBeforeAt = now+60s acts as debounce: rapid re-saves won't create duplicate jobs.
+        await _uow.AskCtkQueue.EnqueueAsync(new EnqueueJobRequest
+        {
+            CompanyId       = companyId,
+            ToolkitId       = dto.ToolkitID,
+            SourceTableName = "Facts",
+            SourceRecordId  = dto.FactsID,
+            AiFunctionType  = "SUMMARIZATION",
+            AiRequestType   = "STATEMENT_SUMMARY",
+            PromptTypeKey   = "STATEMENT_SUMMARY",
+            NotBeforeAt     = DateTime.UtcNow.AddSeconds(60)
+        });
+
+        await _uow.CommitAsync();
+        return response.Ok(true);
+    }
+    catch
+    {
+        await _uow.RollbackAsync();
+        throw;
+    }
+}</code></pre>
+</div>
+<p>Add usings at top of file:</p>
+<pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>using CTK.Common.DTOs.AskCtk;</code></pre>
+
+<!-- ── FactsController ── -->
+<h3 id="edit-ctrl">Edit: <code>CTK.API\Controllers\FactsController.cs</code></h3>
+<p>In the <code>UpdateFact</code> action, pass <code>CurrentUser.CompanyId ?? 0</code>:</p>
+<div class="diff-rem"><code>var result = await _factsService.UpdateFactAsync(dto, CurrentUserId);</code></div>
+<div class="diff-add"><code>var result = await _factsService.UpdateFactAsync(dto, CurrentUserId, CurrentUser.CompanyId ?? 0);</code></div>
+<p><strong>Note:</strong> <code>CurrentUser</code> is available on the base class <code>AuthenticatedController</code>. <code>CompanyId</code> is <code>int?</code> so use <code>?? 0</code>.</p>
+
+<!-- ── ApplicationExtensions ── -->
+<h3 id="edit-app">Edit: <code>CTK.API\Extensions\ApplicationExtensions.cs</code></h3>
+<p>Add Ask CTK service registrations after <code>services.AddScoped&lt;IPromptService, PromptService&gt;();</code>:</p>
+<pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>        // ── Ask CTK — Invisible AI ────────────────────────────────────────────
+        services.AddScoped&lt;IClaimContextBuilder, StatementContextBuilder&gt;();
+        services.AddScoped&lt;AskCtkJobProcessor&gt;();
+        services.AddScoped&lt;IAiResultWriter, StatementSummaryWriter&gt;();
+        services.AddScoped&lt;IAiResultWriterRegistry, AiResultWriterRegistry&gt;();</code></pre>
+
+<p>And register the background worker (replace the commented-out line):</p>
+<div class="diff-rem"><code>//services.AddHostedService&lt;ProcessEmailsBackgroundService&gt;();</code></div>
+<div class="diff-add"><code>services.AddHostedService&lt;ProcessAskCtkQueueService&gt;();</code></div>
+
+<p>Add usings at top of ApplicationExtensions.cs:</p>
+<pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>using CTK.Application.AskCtk;
+using CTK.API.HostedServices;</code></pre>
+
+<!-- ── InfrastructureExtensions ── -->
+<h3 id="edit-infra">Edit: <code>CTK.API\Extensions\InfrastructureExtensions.cs</code></h3>
+<p>Add AI client registration after the existing <code>AddHttpClient&lt;IApiClientService, ApiClientService&gt;()</code> line:</p>
+<pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>        // ── Ask CTK AI client (mock for dev, real for prod) ───────────────────
+        var useMock = configuration.GetValue&lt;bool&gt;("AskCtk:UseMockAiClient", defaultValue: true);
+        if (useMock)
+            services.AddScoped&lt;IAskCtkAiClient, MockAskCtkAiClient&gt;();
+        else
+            services.AddHttpClient&lt;IAskCtkAiClient, AskCtkMcpClient&gt;();</code></pre>
+
+<p>Add usings at top:</p>
+<pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>using CTK.Application.AskCtk;
+using CTK.Infrastructure.ExternalServices;</code></pre>
+
+<!-- ── appsettings ── -->
+<h3 id="edit-appsettings">Edit: <code>CTK.API\appsettings.json</code></h3>
+<p>Add the <code>AskCtk</code> block anywhere at the root level (e.g., after the <code>Google</code> block):</p>
+<pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>  "AskCtk": {
+    "UseMockAiClient": true,
+    "ServiceKey": "ctk-askctk-service-key-replace-in-prod",
+    "McpBaseUrl": "http://localhost:8000"
+  },</code></pre>
+<p><strong>Note:</strong> For production, set <code>UseMockAiClient: false</code> and use a strong <code>ServiceKey</code> that matches the Python server's <code>ASKCTK_SERVICE_KEY</code> env var.</p>
+
+<!-- ══════════════════ PYTHON ══════════════════ -->
+<h2 id="python">Python: Add <code>POST /ai/complete</code> to <code>ctk-mcp-nls\main.py</code></h2>
+<p>File location: <code>D:\vaival\claimtoolkit\Natural-Language-Processing\ctk-mcp-nls\main.py</code></p>
+<p>Insert the following block <strong>just before the <code>if __name__ == "__main__":</code> block</strong> at the bottom of the file:</p>
+
+<pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code># ═══════════════════════════════════════════════════════
+# Ask CTK — Generic AI completion endpoint
+# Called by the .NET background worker (not user-facing).
+# Auth: X-Service-Key header (not JWT bearer).
+# ═══════════════════════════════════════════════════════
+
+class AskCtkCompleteRequest(BaseModel):
+    system_instruction: str
+    prompt: str
+    context_json: Optional[str] = None
+    output_format: str = "TEXT"
+
+class AskCtkCompleteResponse(BaseModel):
+    text: str
+    input_tokens: Optional[int] = None
+    output_tokens: Optional[int] = None
+
+@app.post("/ai/complete", response_model=AskCtkCompleteResponse)
+async def ai_complete(
+    request: AskCtkCompleteRequest,
+    x_service_key: Optional[str] = Header(None, alias="X-Service-Key"),
+):
+    """
+    Generic stateless AI completion for the Ask CTK background worker.
+    The worker sends a fully-rendered prompt; this endpoint calls Gemini and returns the text.
+    """
+    expected_key = os.environ.get("ASKCTK_SERVICE_KEY", "")
+    if not expected_key or x_service_key != expected_key:
+        raise HTTPException(status_code=401, detail="Invalid or missing X-Service-Key header.")
+
+    from agent.llm import get_llm
+    from langchain_core.messages import SystemMessage, HumanMessage
+
+    llm = get_llm()
+    messages = [
+        SystemMessage(content=request.system_instruction),
+        HumanMessage(content=request.prompt),
+    ]
+    response = await llm.ainvoke(messages)
+    text = _extract_text(response.content if hasattr(response, "content") else response)
+
+    return AskCtkCompleteResponse(text=text)</code></pre>
+
+<div class="note"><p><code>_extract_text()</code> is already defined in <code>main.py</code> around line 656 — it handles both string and list-of-parts Gemini responses. No new import needed.</p></div>
+
+<!-- ── .env ── -->
+<h3 id="env">.env file: <code>ctk-mcp-nls\.env</code></h3>
+<p>Add this line to the <code>.env</code> file in the <code>ctk-mcp-nls</code> root:</p>
+<pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>ASKCTK_SERVICE_KEY=ctk-askctk-service-key-replace-in-prod</code></pre>
+<div class="warn"><p>The value MUST match <code>AskCtk:ServiceKey</code> in <code>appsettings.json</code> exactly. Use a strong random value in production (e.g., <code>openssl rand -hex 32</code>).</p></div>
+
+<!-- ══════════════════ FRONTEND ══════════════════ -->
+<h2 id="frontend">Frontend: AI Status Badge on Facts Editor</h2>
+<p>Location: <code>D:\vaival\claimtoolkit\Auto-Liability\ctk-autoliability-frontend\src\app\autolia\</code> — find the Facts editor component (likely <code>facts/editor/edit/</code> or similar).</p>
+
+<h3>Step 1 — Extend the GET /facts/edit response type</h3>
+<p>Find the TypeScript type/interface for <code>FactsEditResponse</code> or the <code>FactDto</code> type. Add the AI fields:</p>
+<pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>// Add to the FactDto or FactsEditResponse type:
+aiSummary?: string | null;
+aiSummaryAt?: string | null;
+aiSummarySource?: string | null;</code></pre>
+
+<h3>Step 2 — Create the <code>AiSummaryBadge</code> component</h3>
+<p>Create a new file near the facts editor:</p>
+<pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>'use client';
+
+interface AiSummaryBadgeProps {
+  summary:   string | null | undefined;
+  summaryAt: string | null | undefined;
+  onRegenerate: () => void;
+  isRegenerating?: boolean;
+}
+
+export function AiSummaryBadge({
+  summary,
+  summaryAt,
+  onRegenerate,
+  isRegenerating = false,
+}: AiSummaryBadgeProps) {
+  const relTime = summaryAt
+    ? getRelativeTime(new Date(summaryAt))
+    : null;
+
+  if (!summary && !isRegenerating) {
+    return (
+      &lt;div className="rounded-md border border-dashed border-gray-600 p-3 text-xs text-gray-500"&gt;
+        AI summary will appear here after save (≈ 30–60 s)
+      &lt;/div&gt;
+    );
+  }
+
+  return (
+    &lt;div className="rounded-md border border-blue-800/40 bg-blue-950/20 p-3 text-sm"&gt;
+      &lt;div className="mb-1 flex items-center justify-between"&gt;
+        &lt;span className="text-xs font-semibold uppercase tracking-wide text-blue-400"&gt;
+          AI Summary
+          {relTime &amp;&amp; &lt;span className="ml-1 font-normal text-gray-500"&gt;· {relTime}&lt;/span&gt;}
+        &lt;/span&gt;
+        &lt;button
+          type="button"
+          onClick={onRegenerate}
+          disabled={isRegenerating}
+          className="rounded px-2 py-0.5 text-xs text-blue-400 hover:bg-blue-900/30 disabled:opacity-50"
+        &gt;
+          {isRegenerating ? 'Queuing…' : '↻ Regenerate'}
+        &lt;/button&gt;
+      &lt;/div&gt;
+      {isRegenerating ? (
+        &lt;p className="text-gray-500"&gt;Queuing AI job…&lt;/p&gt;
+      ) : (
+        &lt;p className="whitespace-pre-wrap text-gray-200"&gt;{summary}&lt;/p&gt;
+      )}
+    &lt;/div&gt;
+  );
+}
+
+function getRelativeTime(date: Date): string {
+  const diffMs  = Date.now() - date.getTime();
+  const diffMin = Math.floor(diffMs / 60_000);
+  if (diffMin &lt; 1)  return 'just now';
+  if (diffMin &lt; 60) return `${diffMin} min ago`;
+  const diffHr = Math.floor(diffMin / 60);
+  if (diffHr &lt; 24)  return `${diffHr} hr ago`;
+  return `${Math.floor(diffHr / 24)} days ago`;
+}</code></pre>
+
+<h3>Step 3 — Wire Regenerate button</h3>
+<p>In the facts editor form submit handler, the existing <code>PUT /api/facts/update</code> call already re-saves the record which re-triggers enqueue. Add a separate "Regenerate" handler that just re-calls the same save:</p>
+<pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>const [isRegenerating, setIsRegenerating] = useState(false);
+
+async function handleRegenerate() {
+  setIsRegenerating(true);
+  try {
+    // Re-save the current form data — this re-enqueues the AI job
+    await updateFact(formData);
+  } finally {
+    setIsRegenerating(false);
+  }
+}</code></pre>
+
+<h3>Step 4 — Add badge to the form JSX</h3>
+<pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>&lt;AiSummaryBadge
+  summary={fact.aiSummary}
+  summaryAt={fact.aiSummaryAt}
+  onRegenerate={handleRegenerate}
+  isRegenerating={isRegenerating}
+/&gt;</code></pre>
+
+<!-- ══════════════════ VERIFICATION ══════════════════ -->
+<h2 id="verify">Verification Checklist — Test in This Order</h2>
+
+<ul class="checklist">
+  <li>
+    <span class="check">◻</span>
+    <div>
+      <div class="label"><strong>1. DDL applied</strong></div>
+      <div class="note-text">Run schema.sql DDL section on DEV DB. Confirm: <code>SELECT * FROM sys.tables WHERE name LIKE 'AutoAsk%'</code> returns <code>AutoAskCTKUpdateQueue</code>. Confirm Facts has <code>AiSummary</code>, <code>AiSummaryAt</code>, <code>AiSummarySource</code> columns.</div>
+    </div>
+  </li>
+  <li>
+    <span class="check">◻</span>
+    <div>
+      <div class="label"><strong>2. STATEMENT_SUMMARY seed</strong></div>
+      <div class="note-text"><code>SELECT * FROM AskCtk_Prompt_Type WHERE TypeKey='STATEMENT_SUMMARY'</code> — must return 1 row with PromptText not null.</div>
+    </div>
+  </li>
+  <li>
+    <span class="check">◻</span>
+    <div>
+      <div class="label"><strong>3. .NET backend compiles</strong></div>
+      <div class="note-text">Run <code>dotnet build</code> from the backend root. Zero errors. Confirm new classes are visible in the output.</div>
+    </div>
+  </li>
+  <li>
+    <span class="check">◻</span>
+    <div>
+      <div class="label"><strong>4. Enqueue on save (mock client)</strong></div>
+      <div class="note-text">Set <code>AskCtk:UseMockAiClient: true</code>. Start backend. Open a claim → edit a party statement → click Save. <br>Query: <code>SELECT * FROM AutoAskCTKUpdateQueue ORDER BY QueueId DESC</code>. Must see 1 PENDING row with <code>AiRequestType='STATEMENT_SUMMARY'</code> and <code>NotBeforeAt</code> ~60s in future.</div>
+    </div>
+  </li>
+  <li>
+    <span class="check">◻</span>
+    <div>
+      <div class="label"><strong>5. Dedup guard works</strong></div>
+      <div class="note-text">While the job is PENDING, save the same statement again. Queue should still have exactly 1 row (not 2). Check <code>COUNT(*)</code>.</div>
+    </div>
+  </li>
+  <li>
+    <span class="check">◻</span>
+    <div>
+      <div class="label"><strong>6. Worker picks up job (mock)</strong></div>
+      <div class="note-text">Wait ~30–60s for the worker tick + NotBeforeAt to pass. The job should move PENDING → PROCESSING → COMPLETED. <br><code>Facts.AiSummary</code> should contain the mock text "[MOCK AI SUMMARY]...".<br><code>AskCtk_AuditLog</code> should have 2 rows: ENQUEUED and COMPLETED.</div>
+    </div>
+  </li>
+  <li>
+    <span class="check">◻</span>
+    <div>
+      <div class="label"><strong>7. Retry logic</strong></div>
+      <div class="note-text">Stop ctk-mcp-nls Python server. Save a statement. After 60s the worker should hit the (real or mock-error) AI call and fail. Check queue: job becomes RETRY with <code>RetryCount=1</code>, <code>NextRetryAt ≈ now+1min</code>. After 2 more failures → FAILED.</div>
+    </div>
+  </li>
+  <li>
+    <span class="check">◻</span>
+    <div>
+      <div class="label"><strong>8. Real AI (Gemini)</strong></div>
+      <div class="note-text">Set <code>UseMockAiClient: false</code>. Ensure <code>ASKCTK_SERVICE_KEY</code> in <code>.env</code> matches <code>AskCtk:ServiceKey</code> in appsettings. Start ctk-mcp-nls. Save a statement. Within 60–90s, <code>Facts.AiSummary</code> should contain real Gemini-generated text.</div>
+    </div>
+  </li>
+  <li>
+    <span class="check">◻</span>
+    <div>
+      <div class="label"><strong>9. Frontend badge shows</strong></div>
+      <div class="note-text">After the AI job completes, refresh the facts editor page. The AI Summary badge should appear with the summary text and "X min ago" relative timestamp. The Regenerate button should re-trigger enqueue.</div>
+    </div>
+  </li>
+  <li>
+    <span class="check">◻</span>
+    <div>
+      <div class="label"><strong>10. User save never blocked</strong></div>
+      <div class="note-text">With ctk-mcp-nls stopped, save a statement. The save must complete &lt;1s. The fact update must succeed. Only the AI job should fail in the background. Confirm the adjuster gets a success response.</div>
+    </div>
+  </li>
+</ul>
+
+<!-- ══════════════════ QUICK REF ══════════════════ -->
+<h2>Quick Reference — Key Decisions</h2>
+<table>
+  <tr><th>Decision</th><th>Choice</th><th>Reason</th></tr>
+  <tr><td>AI LLM</td><td>Google Gemini</td><td>Used by ctk-mcp-nls via <code>langchain_google_genai</code> + <code>GEMINI_API_KEY</code></td></tr>
+  <tr><td>Poll interval</td><td>30 seconds</td><td>Fast enough for UX, low enough DB load</td></tr>
+  <tr><td>Debounce</td><td>NotBeforeAt = now + 60s</td><td>Prevents duplicate AI jobs on rapid saves</td></tr>
+  <tr><td>Retry schedule</td><td>+1min, +5min, +15min → FAILED</td><td>Exponential-ish; 3 attempts max</td></tr>
+  <tr><td>Auth (Python)</td><td>X-Service-Key header</td><td>Background worker has no user JWT; shared secret is sufficient</td></tr>
+  <tr><td>Dev toggle</td><td><code>UseMockAiClient</code> config flag</td><td>Test full pipeline without AI credits</td></tr>
+  <tr><td>Writer pattern</td><td><code>IAiResultWriter</code> per AiRequestType</td><td>Adding AI #2–10 = just a new Writer class, zero core changes</td></tr>
+  <tr><td>Tenant in worker</td><td><code>SetTenantId(config["Tenant:CompanyId"])</code></td><td>Per-replica deploy = 1 company per instance</td></tr>
+</table>
+
+<h2>Implementation Order (do in this sequence)</h2>
+<div class="phase-grid">
+  <div class="phase-card"><div class="phase-num">Phase 1</div><div class="phase-title">Database DDL</div><div class="phase-desc">Run 1A–1F on DEV DB. Verify tables + columns exist.</div></div>
+  <div class="phase-card"><div class="phase-num">Phase 2</div><div class="phase-title">DTOs + Interfaces</div><div class="phase-desc">Create AskCtkDtos.cs, IAskCtkQueueRepository.cs, IAskCtkAiClient.cs, IAiResultWriter.cs, IAiResultWriterRegistry.cs, IClaimContextBuilder.cs</div></div>
+  <div class="phase-card"><div class="phase-num">Phase 3</div><div class="phase-title">Implementations</div><div class="phase-desc">Create AskCtkQueueRepository.cs, MockAskCtkAiClient.cs, AskCtkMcpClient.cs, AiResultWriterRegistry.cs, StatementSummaryWriter.cs, StatementContextBuilder.cs</div></div>
+  <div class="phase-card"><div class="phase-num">Phase 4</div><div class="phase-title">UoW + Repos</div><div class="phase-desc">Edit IUnitOfWork, UnitOfWork, IFactsRepository, FactsRepository (add 2 methods each)</div></div>
+  <div class="phase-card"><div class="phase-num">Phase 5</div><div class="phase-title">Service + Controller</div><div class="phase-desc">Edit IFactsService, FactsService (wrap+enqueue), FactsController (pass companyId)</div></div>
+  <div class="phase-card"><div class="phase-num">Phase 6</div><div class="phase-title">Processor + Worker</div><div class="phase-desc">Create AskCtkJobProcessor.cs, ProcessAskCtkQueueService.cs</div></div>
+  <div class="phase-card"><div class="phase-num">Phase 7</div><div class="phase-title">DI Registration</div><div class="phase-desc">Edit ApplicationExtensions + InfrastructureExtensions + appsettings.json</div></div>
+  <div class="phase-card"><div class="phase-num">Phase 8</div><div class="phase-title">Python Endpoint</div><div class="phase-desc">Add POST /ai/complete to main.py + ASKCTK_SERVICE_KEY to .env</div></div>
+  <div class="phase-card"><div class="phase-num">Phase 9</div><div class="phase-title">Frontend Badge</div><div class="phase-desc">Add AiSummaryBadge to Facts editor + Regenerate button</div></div>
+</div>
+
+<p style="margin-top:40px;color:var(--muted);font-size:12px;">
+  Generated for: <strong style="color:var(--text)">Ask CTK Auto Liability — Increment 1 (Statement Summary)</strong><br>
+  Project: claimtoolkit · Auto Liability module · .NET 9 + FastAPI + Next.js 16<br>
+  This document contains all code needed to implement the feature end-to-end.
+</p>
+
+</main>
+
+<a href="#" class="top-link" title="Back to top">↑</a>
+
+<script>
+// Copy button
+function copyCode(btn) {
+  const pre  = btn.parentElement;
+  const code = pre.querySelector('code');
+  navigator.clipboard.writeText(code.innerText).then(() => {
+    const orig = btn.textContent;
+    btn.textContent = 'Copied!';
+    setTimeout(() => btn.textContent = orig, 1800);
+  });
+}
+
+// Sidebar active link highlight on scroll
+const sections = document.querySelectorAll('h2[id], h3[id], div.file-header[id]');
+const links    = document.querySelectorAll('#sidebar a');
+
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      links.forEach(l => l.classList.remove('active'));
+      const active = document.querySelector(`#sidebar a[href="#${entry.target.id}"]`);
+      if (active) active.classList.add('active');
+    }
+  });
+}, { rootMargin: '-20% 0px -75% 0px' });
+
+sections.forEach(s => observer.observe(s));
+</script>
+</body>
+</html>
