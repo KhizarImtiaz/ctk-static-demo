@@ -1,0 +1,1012 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>AI-CTK-NLP — Project Documentation</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 15px;
+    line-height: 1.7;
+    color: #1a1a1a;
+    background: #f5f5f3;
+  }
+
+  /* ── Header ── */
+  .hero {
+    background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%);
+    color: #fff;
+    padding: 52px 60px 44px;
+  }
+  .hero-tag {
+    display: inline-block;
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 20px;
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 4px 14px;
+    margin-bottom: 18px;
+    color: #93c5fd;
+  }
+  .hero h1 { font-size: 34px; font-weight: 700; margin-bottom: 10px; }
+  .hero p  { font-size: 16px; color: #cbd5e1; max-width: 620px; }
+  .hero-meta {
+    margin-top: 28px;
+    display: flex;
+    gap: 28px;
+    flex-wrap: wrap;
+  }
+  .hero-meta span {
+    font-size: 13px;
+    color: #94a3b8;
+  }
+  .hero-meta strong { color: #e2e8f0; }
+
+  /* ── Stat bar ── */
+  .stat-bar {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    background: #1e293b;
+    border-bottom: 1px solid #334155;
+  }
+  .stat {
+    padding: 20px 28px;
+    border-right: 1px solid #334155;
+    text-align: center;
+  }
+  .stat:last-child { border-right: none; }
+  .stat-num  { font-size: 26px; font-weight: 700; color: #38bdf8; }
+  .stat-label{ font-size: 12px; color: #64748b; text-transform: uppercase; letter-spacing: 0.06em; margin-top: 2px; }
+
+  /* ── Layout ── */
+  .page { max-width: 1000px; margin: 0 auto; padding: 48px 32px; }
+
+  /* ── Section ── */
+  .section { margin-bottom: 52px; }
+  .section-title {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #2563eb;
+    margin-bottom: 6px;
+  }
+  .section h2 {
+    font-size: 22px;
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 18px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid #e2e8f0;
+  }
+
+  /* ── Cards ── */
+  .card {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 22px 24px;
+  }
+  .card + .card { margin-top: 14px; }
+
+  /* ── Summary Box ── */
+  .summary-box {
+    background: #eff6ff;
+    border-left: 4px solid #2563eb;
+    border-radius: 0 8px 8px 0;
+    padding: 18px 22px;
+    margin-bottom: 24px;
+    font-size: 15px;
+    color: #1e3a5f;
+  }
+
+  /* ── Warning Box ── */
+  .warn-box {
+    background: #fffbeb;
+    border-left: 4px solid #f59e0b;
+    border-radius: 0 8px 8px 0;
+    padding: 16px 20px;
+    margin-top: 18px;
+    font-size: 14px;
+    color: #78350f;
+  }
+  .warn-box strong { color: #92400e; }
+
+  /* ── Info Box ── */
+  .info-box {
+    background: #f0fdf4;
+    border-left: 4px solid #16a34a;
+    border-radius: 0 8px 8px 0;
+    padding: 16px 20px;
+    margin-top: 18px;
+    font-size: 14px;
+    color: #14532d;
+  }
+
+  /* ── Tables ── */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  thead th {
+    background: #f8fafc;
+    padding: 11px 14px;
+    text-align: left;
+    font-size: 12px;
+    font-weight: 600;
+    color: #475569;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid #e2e8f0;
+  }
+  tbody td {
+    padding: 11px 14px;
+    border-bottom: 1px solid #f1f5f9;
+    color: #334155;
+    vertical-align: top;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover td { background: #f8fafc; }
+
+  /* ── Badges ── */
+  .badge {
+    display: inline-block;
+    padding: 2px 9px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .badge-get    { background: #dbeafe; color: #1e40af; }
+  .badge-post   { background: #dcfce7; color: #15803d; }
+  .badge-none   { background: #f1f5f9; color: #475569; }
+  .badge-key    { background: #fef3c7; color: #92400e; }
+  .badge-read   { background: #e0f2fe; color: #075985; }
+  .badge-write  { background: #fce7f3; color: #9d174d; }
+  .badge-ext    { background: #f3e8ff; color: #6b21a8; }
+  .badge-manual { background: #ffedd5; color: #c2410c; }
+  .badge-auto   { background: #d1fae5; color: #065f46; }
+
+  /* ── Flow diagram ── */
+  .flow {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+  .flow-step {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+  }
+  .flow-left {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 36px;
+    flex-shrink: 0;
+  }
+  .flow-circle {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: #2563eb;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .flow-line {
+    width: 2px;
+    flex: 1;
+    min-height: 24px;
+    background: #e2e8f0;
+    margin-top: 2px;
+  }
+  .flow-content {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 14px 18px;
+    flex: 1;
+    margin-bottom: 8px;
+  }
+  .flow-content h4 { font-size: 14px; font-weight: 600; color: #0f172a; margin-bottom: 4px; }
+  .flow-content p  { font-size: 13px; color: #64748b; }
+  .flow-content code {
+    background: #f1f5f9;
+    border-radius: 4px;
+    padding: 1px 6px;
+    font-size: 12px;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    color: #1e40af;
+  }
+
+  /* ── CRUD grid ── */
+  .crud-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+  .crud-card {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 18px 20px;
+  }
+  .crud-card h4 {
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 10px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #f1f5f9;
+  }
+  .crud-create h4 { color: #16a34a; border-color: #dcfce7; }
+  .crud-read    h4 { color: #2563eb; border-color: #dbeafe; }
+  .crud-update  h4 { color: #d97706; border-color: #fef3c7; }
+  .crud-delete  h4 { color: #dc2626; border-color: #fee2e2; }
+  .crud-card p  { font-size: 13px; color: #475569; line-height: 1.6; }
+  .crud-card ul { margin-top: 8px; padding-left: 18px; }
+  .crud-card li { font-size: 13px; color: #475569; margin-bottom: 4px; }
+
+  /* ── Issues grid ── */
+  .issues-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+  }
+  .issue-card {
+    background: #fff;
+    border: 1px solid #fecaca;
+    border-top: 3px solid #ef4444;
+    border-radius: 10px;
+    padding: 16px 18px;
+  }
+  .issue-card h4 { font-size: 13px; font-weight: 700; color: #991b1b; margin-bottom: 6px; }
+  .issue-card p  { font-size: 13px; color: #475569; }
+
+  /* ── Tech grid ── */
+  .tech-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+  .tech-item {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 14px 16px;
+  }
+  .tech-item .layer { font-size: 11px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; }
+  .tech-item .name  { font-size: 14px; font-weight: 600; color: #0f172a; }
+  .tech-item .desc  { font-size: 12px; color: #64748b; margin-top: 2px; }
+
+  /* ── DB section ── */
+  .db-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+  .db-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+  }
+  .db-icon-pg    { background: #dbeafe; }
+  .db-icon-sql   { background: #fce7f3; }
+  .db-icon-faiss { background: #dcfce7; }
+  .db-title { font-size: 16px; font-weight: 700; color: #0f172a; }
+  .db-sub   { font-size: 12px; color: #64748b; }
+
+  /* ── CSV Timeline ── */
+  .csv-timeline { display: flex; flex-direction: column; gap: 10px; margin-top: 14px; }
+  .csv-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 12px 16px;
+  }
+  .csv-row.active { border-color: #2563eb; border-left: 4px solid #2563eb; }
+  .csv-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #cbd5e1;
+    flex-shrink: 0;
+  }
+  .csv-row.active .csv-dot { background: #2563eb; }
+  .csv-file { font-size: 13px; font-weight: 600; color: #334155; flex: 1; font-family: 'SF Mono', monospace; }
+  .csv-row.active .csv-file { color: #1e40af; }
+  .csv-note { font-size: 12px; color: #94a3b8; }
+
+  /* ── Endpoint block ── */
+  .endpoint-block {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    margin-bottom: 16px;
+    overflow: hidden;
+  }
+  .endpoint-head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 20px;
+    background: #f8fafc;
+    border-bottom: 1px solid #e2e8f0;
+  }
+  .endpoint-path {
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    font-size: 14px;
+    font-weight: 600;
+    color: #0f172a;
+  }
+  .endpoint-title { font-size: 14px; font-weight: 600; color: #475569; margin-left: auto; }
+  .endpoint-body { padding: 16px 20px; }
+  .endpoint-desc { font-size: 14px; color: #475569; margin-bottom: 14px; }
+  .endpoint-section-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: #94a3b8;
+    margin-bottom: 8px;
+    margin-top: 14px;
+  }
+  .db-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 4px 10px;
+    font-size: 12px;
+    color: #334155;
+    margin-right: 6px;
+    margin-bottom: 6px;
+  }
+  .db-tag .op { font-weight: 700; }
+  .db-tag .op-r { color: #2563eb; }
+  .db-tag .op-w { color: #dc2626; }
+  .db-tag .op-e { color: #7c3aed; }
+  .db-tag .op-n { color: #94a3b8; }
+  .note-tag {
+    font-size: 12px;
+    color: #64748b;
+    font-style: italic;
+    margin-top: 6px;
+  }
+
+  /* ── Footer ── */
+  .footer {
+    background: #0f172a;
+    color: #64748b;
+    text-align: center;
+    padding: 28px 32px;
+    font-size: 13px;
+  }
+  .footer strong { color: #94a3b8; }
+
+  @media (max-width: 680px) {
+    .stat-bar { grid-template-columns: repeat(2, 1fr); }
+    .crud-grid, .issues-grid, .tech-grid { grid-template-columns: 1fr; }
+    .hero { padding: 32px 24px 28px; }
+    .page { padding: 32px 20px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════ HERO ══════════════════ -->
+<div class="hero">
+  <div class="hero-tag">Project Documentation</div>
+  <h1>AI-CTK-NLP</h1>
+  <p>An intelligent compliance chart search API that lets insurance adjusters find state-specific legal references using plain-English questions — powered by semantic search and AI.</p>
+  <div class="hero-meta">
+    <span><strong>Type</strong> — REST API</span>
+    <span><strong>Framework</strong> — FastAPI (Python)</span>
+    <span><strong>Version</strong> — 1.0.0</span>
+    <span><strong>Environment</strong> — Production (GPU Server)</span>
+  </div>
+</div>
+
+<!-- ══════════════════ STAT BAR ══════════════════ -->
+<div class="stat-bar">
+  <div class="stat"><div class="stat-num">6</div><div class="stat-label">API Endpoints</div></div>
+  <div class="stat"><div class="stat-num">65</div><div class="stat-label">Jurisdictions (US + Canada)</div></div>
+  <div class="stat"><div class="stat-num">3</div><div class="stat-label">Lines of Business</div></div>
+  <div class="stat"><div class="stat-num">1+5</div><div class="stat-label">Primary + Secondary Results</div></div>
+</div>
+
+<!-- ══════════════════ PAGE BODY ══════════════════ -->
+<div class="page">
+
+
+  <!-- ── 1. WHAT IS IT ── -->
+  <div class="section">
+    <div class="section-title">Overview</div>
+    <h2>What Is AI-CTK-NLP?</h2>
+
+    <div class="summary-box">
+      AI-CTK-NLP is a compliance chart search API. Insurance adjusters type a plain-English question — the system automatically detects the state, searches thousands of compliance records using AI, and returns the most relevant legal chart references instantly.
+    </div>
+
+    <div class="card">
+      <strong style="display:block; margin-bottom:10px; color:#0f172a;">Example in action</strong>
+      <p style="font-size:14px; color:#475569; margin-bottom:8px;">
+        An adjuster asks: <em style="color:#1e40af;">"What are the right of way laws in California for Auto claims?"</em>
+      </p>
+      <p style="font-size:14px; color:#475569;">
+        The API extracts <strong>California</strong> as the state, filters to <strong>Auto</strong> line of business, runs a semantic vector search, and returns <strong>1 primary match</strong> (most relevant) + <strong>5 secondary matches</strong> (related), each with a URL, chart name, category, and aliases.
+      </p>
+    </div>
+  </div>
+
+
+  <!-- ── 2. TECH STACK ── -->
+  <div class="section">
+    <div class="section-title">Technology</div>
+    <h2>Tech Stack</h2>
+
+    <div class="tech-grid">
+      <div class="tech-item">
+        <div class="layer">API Framework</div>
+        <div class="name">FastAPI</div>
+        <div class="desc">Python — async, high-performance REST API</div>
+      </div>
+      <div class="tech-item">
+        <div class="layer">AI / LLM</div>
+        <div class="name">Ollama — Gemma2 27B</div>
+        <div class="desc">In-house GPU server, formats and ranks results</div>
+      </div>
+      <div class="tech-item">
+        <div class="layer">Embeddings</div>
+        <div class="name">BAAI/bge-large-en-v1.5</div>
+        <div class="desc">HuggingFace model, CUDA-accelerated</div>
+      </div>
+      <div class="tech-item">
+        <div class="layer">Vector Search</div>
+        <div class="name">FAISS</div>
+        <div class="desc">Local disk-based semantic search index</div>
+      </div>
+      <div class="tech-item">
+        <div class="layer">Database</div>
+        <div class="name">PostgreSQL</div>
+        <div class="desc">Stores query logs and feedback</div>
+      </div>
+      <div class="tech-item">
+        <div class="layer">Data Source</div>
+        <div class="name">CTK Compliance CSV</div>
+        <div class="desc">Exported from ClaimtoolKit SQL Server MainDB</div>
+      </div>
+      <div class="tech-item">
+        <div class="layer">Monitoring</div>
+        <div class="name">Sentry</div>
+        <div class="desc">Error tracking + performance monitoring</div>
+      </div>
+      <div class="tech-item">
+        <div class="layer">Security</div>
+        <div class="name">Fernet Encryption</div>
+        <div class="desc">Encrypted API key auth on v2 endpoints</div>
+      </div>
+      <div class="tech-item">
+        <div class="layer">Deployment</div>
+        <div class="name">Docker + GitHub Actions</div>
+        <div class="desc">CI/CD → SSH deploy to GPU server</div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ── 3. DATA FLOW ── -->
+  <div class="section">
+    <div class="section-title">Architecture</div>
+    <h2>How Data Flows</h2>
+
+    <p style="color:#475569; margin-bottom:22px; font-size:14px;">Every search request goes through 6 stages before returning a result to the user.</p>
+
+    <div class="flow">
+
+      <div class="flow-step">
+        <div class="flow-left">
+          <div class="flow-circle">1</div>
+          <div class="flow-line"></div>
+        </div>
+        <div class="flow-content">
+          <h4>User sends a question</h4>
+          <p>Provides a plain-English question and a line of business (<code>Auto</code>, <code>Commercial</code>, or <code>Homeowners</code>). No need to know chart names or IDs.</p>
+        </div>
+      </div>
+
+      <div class="flow-step">
+        <div class="flow-left">
+          <div class="flow-circle">2</div>
+          <div class="flow-line"></div>
+        </div>
+        <div class="flow-content">
+          <h4>State is extracted automatically</h4>
+          <p>The API scans the question text using regex to detect a US state or Canadian province — by full name (<code>California</code>) or abbreviation (<code>CA</code>). If no state is found, a <code>400 Bad Request</code> is returned immediately.</p>
+        </div>
+      </div>
+
+      <div class="flow-step">
+        <div class="flow-left">
+          <div class="flow-circle">3</div>
+          <div class="flow-line"></div>
+        </div>
+        <div class="flow-content">
+          <h4>Semantic search on the FAISS index</h4>
+          <p>The question is converted into a vector using the BGE embedding model. FAISS searches the local compliance chart index, filtered by the detected state and line of business. Returns the top 6 most semantically relevant records using <code>Max Marginal Relevance</code> — balancing relevance and diversity.</p>
+        </div>
+      </div>
+
+      <div class="flow-step">
+        <div class="flow-left">
+          <div class="flow-circle">4</div>
+          <div class="flow-line"></div>
+        </div>
+        <div class="flow-content">
+          <h4>AI formats the results</h4>
+          <p>The 6 FAISS records are sent to the Ollama Gemma2 27B model along with the original question. The LLM formats them into a structured response: <code>1 Primary</code> (best match) + <code>5 Secondary</code> (related matches), each with URL, chart name, category, and aliases.</p>
+        </div>
+      </div>
+
+      <div class="flow-step">
+        <div class="flow-left">
+          <div class="flow-circle">5</div>
+          <div class="flow-line"></div>
+        </div>
+        <div class="flow-content">
+          <h4>Query is logged to PostgreSQL</h4>
+          <p>The question and total response time are saved to the <code>response_times</code> table for performance monitoring and analytics.</p>
+        </div>
+      </div>
+
+      <div class="flow-step">
+        <div class="flow-left">
+          <div class="flow-circle" style="background:#16a34a;">6</div>
+        </div>
+        <div class="flow-content">
+          <h4>Result returned to user</h4>
+          <p>Full JSON response with the AI-formatted result, detected state info, and metadata (response time, model name, timestamp).</p>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="info-box" style="margin-top:20px;">
+      <strong>Streaming mode:</strong> The <code>/search/stream</code> endpoints follow the same flow but stream the AI output token-by-token as Server-Sent Events (SSE) — the UI can display results progressively without waiting for the full response.
+    </div>
+  </div>
+
+
+  <!-- ── 4. API ENDPOINTS ── -->
+  <div class="section">
+    <div class="section-title">API Reference</div>
+    <h2>API Endpoints</h2>
+
+    <!-- GET / -->
+    <div class="endpoint-block">
+      <div class="endpoint-head">
+        <span class="badge badge-get">GET</span>
+        <span class="endpoint-path">/</span>
+        <span class="endpoint-title">Health Check</span>
+      </div>
+      <div class="endpoint-body">
+        <p class="endpoint-desc">Confirms the API server is up and running. Returns a simple status message. No authentication or parameters required.</p>
+        <div class="endpoint-section-label">Response</div>
+        <code style="font-size:12px; background:#f1f5f9; padding:8px 12px; border-radius:6px; display:block; color:#1e40af;">{"message": "CTK NLP API is working"}</code>
+        <div class="endpoint-section-label">Database Involvement</div>
+        <span class="db-tag"><span class="op op-n">—</span> No database involvement</span>
+      </div>
+    </div>
+
+    <!-- POST /search -->
+    <div class="endpoint-block">
+      <div class="endpoint-head">
+        <span class="badge badge-post">POST</span>
+        <span class="endpoint-path">/search</span>
+        <span class="endpoint-title">Compliance Chart Search</span>
+      </div>
+      <div class="endpoint-body">
+        <p class="endpoint-desc">
+          The core search endpoint. Accepts a plain-English question and a line of business. Automatically extracts the state from the question, runs FAISS semantic search, and passes results through the LLM to return a formatted answer. No authentication required — open endpoint for internal use.
+        </p>
+
+        <div class="endpoint-section-label">Query Parameters</div>
+        <table style="margin-bottom:0;">
+          <thead><tr><th>Parameter</th><th>Required</th><th>Values</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><code style="font-size:12px; background:#f1f5f9; padding:1px 6px; border-radius:4px; color:#1e40af;">question</code></td>
+              <td><span class="badge badge-key" style="font-size:10px;">Required</span></td>
+              <td>Any text string</td>
+              <td>Plain-English question mentioning a state. E.g. "What are lookout laws in Texas?"</td>
+            </tr>
+            <tr>
+              <td><code style="font-size:12px; background:#f1f5f9; padding:1px 6px; border-radius:4px; color:#1e40af;">lob_name</code></td>
+              <td><span class="badge badge-key" style="font-size:10px;">Required</span></td>
+              <td>Auto / Commercial / Homeowners</td>
+              <td>Line of business to filter results. Must match exactly.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="endpoint-section-label">Response</div>
+        <code style="font-size:12px; background:#f1f5f9; padding:8px 12px; border-radius:6px; display:block; color:#1e40af; line-height:1.8;">
+          { "result": "PRIMARY:\n  URL: ...\n  ChartName: Look Out\n  SECONDARY:\n  1. URL: ...",<br>
+          &nbsp;&nbsp;"state": { "name": "Texas", "id": 43 },<br>
+          &nbsp;&nbsp;"metadata": { "response_time": 2.4, "model": "gemma2:27b" } }
+        </code>
+
+        <div class="endpoint-section-label">Error Responses</div>
+        <table style="margin-bottom:12px;">
+          <thead><tr><th>Code</th><th>Reason</th></tr></thead>
+          <tbody>
+            <tr><td>400</td><td>No valid state found in the question, or invalid <code>lob_name</code></td></tr>
+            <tr><td>500</td><td>LLM or vector search internal failure</td></tr>
+          </tbody>
+        </table>
+
+        <div class="endpoint-section-label">Database Involvement</div>
+        <span class="db-tag"><span class="op op-r">READ</span> FAISS — server-ctk-embeddings-local/</span>
+        <span class="db-tag"><span class="op op-w">WRITE</span> PostgreSQL — response_times</span>
+        <p class="note-tag">Logs: question text + total response time for every search request.</p>
+      </div>
+    </div>
+
+    <!-- GET /search/stream -->
+    <div class="endpoint-block">
+      <div class="endpoint-head">
+        <span class="badge badge-get">GET</span>
+        <span class="endpoint-path">/search/stream</span>
+        <span class="endpoint-title">Compliance Search — Streaming (v1)</span>
+      </div>
+      <div class="endpoint-body">
+        <p class="endpoint-desc">
+          Identical to <code>/search</code> in logic and parameters, but streams the LLM output token-by-token using Server-Sent Events (SSE). Useful for displaying results progressively in the UI without waiting for the full response. No authentication required.
+        </p>
+
+        <div class="endpoint-section-label">Query Parameters</div>
+        <p style="font-size:13px; color:#64748b;">Same as <code>/search</code> — question + lob_name.</p>
+
+        <div class="endpoint-section-label">SSE Stream Sequence</div>
+        <table style="margin-bottom:12px;">
+          <thead><tr><th>Event</th><th>Payload</th><th>When Sent</th></tr></thead>
+          <tbody>
+            <tr><td>State info</td><td><code>{"state": {"name": "Texas", "id": 43}}</code></td><td>Immediately, before LLM starts</td></tr>
+            <tr><td>Content chunks</td><td><code>{"content": "PRIMARY:\n..."}</code></td><td>Streamed token-by-token from LLM</td></tr>
+            <tr><td>Metadata</td><td><code>{"metadata": {"response_time": 2.1}}</code></td><td>After LLM finishes</td></tr>
+            <tr><td>Done signal</td><td><code>[DONE]</code></td><td>Stream end</td></tr>
+          </tbody>
+        </table>
+
+        <div class="endpoint-section-label">Database Involvement</div>
+        <span class="db-tag"><span class="op op-r">READ</span> FAISS — server-ctk-embeddings-local/</span>
+        <span class="db-tag"><span class="op op-w">WRITE</span> PostgreSQL — response_times</span>
+        <p class="note-tag">Response time is updated in the DB after streaming completes.</p>
+      </div>
+    </div>
+
+    <!-- POST /feedback -->
+    <div class="endpoint-block">
+      <div class="endpoint-head">
+        <span class="badge badge-post">POST</span>
+        <span class="endpoint-path">/feedback</span>
+        <span class="endpoint-title">Submit Feedback (v1 — No Auth)</span>
+      </div>
+      <div class="endpoint-body">
+        <p class="endpoint-desc">
+          Allows users to report whether a search result was correct or not. The feedback payload is forwarded directly to the external CTK API for storage — it is not saved locally. This is the legacy v1 endpoint with no authentication. Use <code>/feedback/v2</code> in production environments.
+        </p>
+
+        <div class="endpoint-section-label">Request Body</div>
+        <table style="margin-bottom:12px;">
+          <thead><tr><th>Field</th><th>Type</th><th>Required</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td>question</td><td>string</td><td>Yes</td><td>The original search question</td></tr>
+            <tr><td>primary_url</td><td>string</td><td>No</td><td>URL of the primary result shown</td></tr>
+            <tr><td>secondary_urls</td><td>string</td><td>No</td><td>URLs of secondary results shown</td></tr>
+            <tr><td>is_correct</td><td>boolean</td><td>Yes</td><td>Was the result accurate?</td></tr>
+            <tr><td>comment</td><td>string</td><td>No</td><td>Optional notes from the user</td></tr>
+          </tbody>
+        </table>
+
+        <div class="endpoint-section-label">Database Involvement</div>
+        <span class="db-tag"><span class="op op-e">FORWARD</span> External CTK API (API_URL env)</span>
+        <span class="db-tag"><span class="op op-n">—</span> PostgreSQL feedback_ctk — not written</span>
+        <p class="note-tag">Note: The <code>feedback_ctk</code> table exists in the schema but is not used by this endpoint. Feedback goes to the external CTK system.</p>
+      </div>
+    </div>
+
+    <!-- POST /feedback/v2 -->
+    <div class="endpoint-block">
+      <div class="endpoint-head">
+        <span class="badge badge-post">POST</span>
+        <span class="endpoint-path">/feedback/v2</span>
+        <span class="endpoint-title">Submit Feedback (v2 — API Key Required)</span>
+      </div>
+      <div class="endpoint-body">
+        <p class="endpoint-desc">
+          Production-secured version of <code>/feedback</code>. Requires a valid Fernet-encrypted API key in the request header. All request body fields, behavior, and database involvement are identical to <code>/feedback</code>.
+        </p>
+
+        <div class="endpoint-section-label">Required Header</div>
+        <code style="font-size:12px; background:#f1f5f9; padding:8px 12px; border-radius:6px; display:block; color:#1e40af;">api-key: &lt;fernet-encrypted-key&gt;</code>
+
+        <div class="endpoint-section-label">Database Involvement</div>
+        <span class="db-tag"><span class="op op-e">FORWARD</span> External CTK API</span>
+        <span class="db-tag"><span class="op op-n">—</span> PostgreSQL feedback_ctk — not written</span>
+      </div>
+    </div>
+
+    <!-- GET /search/stream/v2 -->
+    <div class="endpoint-block">
+      <div class="endpoint-head">
+        <span class="badge badge-get">GET</span>
+        <span class="endpoint-path">/search/stream/v2</span>
+        <span class="endpoint-title">Streaming Search (v2 — API Key Required)</span>
+      </div>
+      <div class="endpoint-body">
+        <p class="endpoint-desc">
+          Production-secured version of <code>/search/stream</code>. Requires a valid Fernet-encrypted API key in the request header. All query parameters, streaming behavior, and database involvement are identical to <code>/search/stream</code>.
+        </p>
+
+        <div class="endpoint-section-label">Required Header</div>
+        <code style="font-size:12px; background:#f1f5f9; padding:8px 12px; border-radius:6px; display:block; color:#1e40af;">api-key: &lt;fernet-encrypted-key&gt;</code>
+
+        <div class="endpoint-section-label">Database Involvement</div>
+        <span class="db-tag"><span class="op op-r">READ</span> FAISS — server-ctk-embeddings-local/</span>
+        <span class="db-tag"><span class="op op-w">WRITE</span> PostgreSQL — response_times</span>
+      </div>
+    </div>
+
+  </div>
+
+
+  <!-- ── 5. DATABASE ── -->
+  <div class="section">
+    <div class="section-title">Data Storage</div>
+    <h2>Database Information</h2>
+
+    <!-- PostgreSQL -->
+    <div class="card" style="margin-bottom:14px;">
+      <div class="db-header">
+        <div class="db-icon db-icon-pg">🐘</div>
+        <div>
+          <div class="db-title">PostgreSQL — Operational Database</div>
+          <div class="db-sub">Stores internal logs and feedback records. Connection pool: 25 persistent + 25 overflow.</div>
+        </div>
+      </div>
+      <table>
+        <thead><tr><th>Table</th><th>Columns</th><th>Purpose</th><th>Written By</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><code style="font-size:12px; background:#f1f5f9; padding:1px 6px; border-radius:4px; color:#1e40af;">response_times</code></td>
+            <td style="font-size:12px;">id, question, response_time (float), timestamp</td>
+            <td>Logs every search query and how long it took to respond</td>
+            <td><span class="badge badge-write" style="font-size:10px;">All /search endpoints</span></td>
+          </tr>
+          <tr>
+            <td><code style="font-size:12px; background:#f1f5f9; padding:1px 6px; border-radius:4px; color:#1e40af;">feedback_ctk</code></td>
+            <td style="font-size:12px;">id, question, primary_url, secondary_urls, is_correct, comment, timestamp</td>
+            <td>Defined in schema — holds user feedback on result accuracy</td>
+            <td><span class="badge badge-none" style="font-size:10px;">Not currently used</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- SQL Server -->
+    <div class="card" style="margin-bottom:14px;">
+      <div class="db-header">
+        <div class="db-icon db-icon-sql">🗄️</div>
+        <div>
+          <div class="db-title">SQL Server — ClaimtoolKit MainDB (CL-WEB156-09)</div>
+          <div class="db-sub">Central shared database. Source of all compliance chart data. Connection defined in ctk_connection_sql.py.</div>
+        </div>
+      </div>
+      <p style="font-size:14px; color:#475569;">
+        This is the master source of truth for all compliance content — 68 state-specific DB* tables covering chart names, URLs, categories, aliases, and line-of-business mappings across all 65 jurisdictions. The AI-CTK-NLP project reads from here indirectly via CSV export (see Data Source section below).
+      </p>
+    </div>
+
+    <!-- FAISS -->
+    <div class="card">
+      <div class="db-header">
+        <div class="db-icon db-icon-faiss">⚡</div>
+        <div>
+          <div class="db-title">FAISS Vector Index — Local Disk</div>
+          <div class="db-sub">Folder: server-ctk-embeddings-local/ — built from CSV at startup.</div>
+        </div>
+      </div>
+      <p style="font-size:14px; color:#475569; margin-bottom:14px;">
+        Not a traditional database — a file-based vector index optimized for fast semantic search. Each record stores a compliance chart row as a high-dimensional vector alongside its metadata.
+      </p>
+      <table>
+        <thead><tr><th>Fields Stored Per Record</th></tr></thead>
+        <tbody>
+          <tr><td style="font-size:13px;">Line of Business name + ID &nbsp;|&nbsp; State name, abbreviation + ID &nbsp;|&nbsp; Country &nbsp;|&nbsp; Chart name + ID &nbsp;|&nbsp; Aliases &nbsp;|&nbsp; Category name &nbsp;|&nbsp; URL &nbsp;|&nbsp; Row number</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+
+  <!-- ── 6. FAISS CRUD ── -->
+  <div class="section">
+    <div class="section-title">Vector Index</div>
+    <h2>FAISS Index — How CRUD Works</h2>
+
+    <p style="color:#475569; font-size:14px; margin-bottom:20px;">
+      FAISS has no SQL-style commands. There are no INSERT or UPDATE statements. Here is how each operation is performed:
+    </p>
+
+    <div class="crud-grid">
+      <div class="crud-card crud-create">
+        <h4>Create — Build the Index</h4>
+        <p>Triggered automatically at startup <strong>only if the index folder is missing</strong>.</p>
+        <ul>
+          <li>Reads the compliance CSV file</li>
+          <li>Converts each row into a Document with text + metadata</li>
+          <li>BGE model embeds every document into a vector</li>
+          <li>FAISS builds the searchable index</li>
+          <li>Saves index to disk (<code>server-ctk-embeddings-local/</code>)</li>
+        </ul>
+        <p style="margin-top:8px;"><span class="badge badge-auto">Automatic — one-time at startup</span></p>
+      </div>
+
+      <div class="crud-card crud-read">
+        <h4>Read — Search the Index</h4>
+        <p>Called on <strong>every search request</strong>.</p>
+        <ul>
+          <li>User question is embedded into a vector</li>
+          <li>FAISS finds the top 6 closest vectors</li>
+          <li>Filtered by <code>state_id</code> + <code>line_of_business_id</code></li>
+          <li>Uses <strong>Max Marginal Relevance</strong> to balance relevance and diversity in results</li>
+        </ul>
+        <p style="margin-top:8px;"><span class="badge badge-auto">Automatic — every /search call</span></p>
+      </div>
+
+      <div class="crud-card crud-update">
+        <h4>Update — Refresh the Data</h4>
+        <p>No partial update exists in FAISS. A full rebuild is required.</p>
+        <ul>
+          <li>Update the source CSV file with new data</li>
+          <li>Delete the <code>server-ctk-embeddings-local/</code> folder</li>
+          <li>Restart the application</li>
+          <li>Startup detects missing folder → full rebuild</li>
+        </ul>
+        <p style="margin-top:8px;"><span class="badge badge-manual">Manual — full rebuild required</span></p>
+      </div>
+
+      <div class="crud-card crud-delete">
+        <h4>Delete — Remove Records</h4>
+        <p>No row-level delete exists in FAISS. Same approach as Update.</p>
+        <ul>
+          <li>Remove the record from the CSV file</li>
+          <li>Delete the <code>server-ctk-embeddings-local/</code> folder</li>
+          <li>Restart the application</li>
+          <li>Index rebuilds without the removed record</li>
+        </ul>
+        <p style="margin-top:8px;"><span class="badge badge-manual">Manual — full rebuild required</span></p>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ── 7. CSV DATA SOURCE ── -->
+  <div class="section">
+    <div class="section-title">Data Pipeline</div>
+    <h2>CSV Data Source — Where It Comes From</h2>
+
+    <div class="summary-box">
+      The compliance data originates from the <strong>ClaimtoolKit SQL Server MainDB</strong>. Someone manually runs a query against the DB* compliance tables, exports the result to a CSV file, places it in the project folder, and restarts the app. This is a fully manual process.
+    </div>
+
+    <div class="card" style="margin-bottom:16px;">
+      <strong style="display:block; margin-bottom:14px; color:#0f172a; font-size:15px;">Manual Update Steps</strong>
+
+      <div class="flow">
+        <div class="flow-step">
+          <div class="flow-left"><div class="flow-circle" style="width:28px;height:28px;font-size:12px;">1</div><div class="flow-line"></div></div>
+          <div class="flow-content"><h4>Query ClaimtoolKit SQL Server</h4><p>Run a SELECT against the <code>DB*</code> compliance tables in the <code>ClaimtoolKit</code> MainDB to get all chart data.</p></div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-left"><div class="flow-circle" style="width:28px;height:28px;font-size:12px;">2</div><div class="flow-line"></div></div>
+          <div class="flow-content"><h4>Export result to a new CSV file</h4><p>Name it with the current date — e.g. <code>CTK_Updated_Database_june_16_2025.csv</code></p></div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-left"><div class="flow-circle" style="width:28px;height:28px;font-size:12px;">3</div><div class="flow-line"></div></div>
+          <div class="flow-content"><h4>Drop CSV into the project folder</h4><p>Place the new file in <code>CTK_csv_data/</code>.</p></div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-left"><div class="flow-circle" style="width:28px;height:28px;font-size:12px;">4</div><div class="flow-line"></div></div>
+          <div class="flow-content"><h4>Update the hardcoded filename in app.py</h4><p>Change the CSV path in <code>app.py</code> line ~202 to the new filename.</p></div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-left"><div class="flow-circle" style="width:28px;height:28px;font-size:12px;">5</div><div class="flow-line"></div></div>
+          <div class="flow-content"><h4>Delete the old FAISS index folder</h4><p>Remove <code>server-ctk-embeddings-local/</code> so startup triggers a rebuild.</p></div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-left"><div class="flow-circle" style="width:28px;height:28px;background:#16a34a;font-size:12px;">6</div></div>
+          <div class="flow-content"><h4>Redeploy / Restart the app</h4><p>App detects missing index → rebuilds from new CSV automatically → system is live with updated data.</p></div>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-bottom:6px; font-size:14px; font-weight:600; color:#0f172a;">CSV version history (evidence of manual process)</div>
+    <div class="csv-timeline">
+      <div class="csv-row"><div class="csv-dot"></div><div class="csv-file">Merged_DBStateSearch_State_USA_states.csv</div><div class="csv-note">Early version — US states only</div></div>
+      <div class="csv-row"><div class="csv-dot"></div><div class="csv-file">Merged_DBStateSearch_State_USA_states_dec_24.csv</div><div class="csv-note">December 2024 — US only</div></div>
+      <div class="csv-row"><div class="csv-dot"></div><div class="csv-file">Merged_DBStateSearch_State_all_states.csv</div><div class="csv-note">Expanded to US + Canada</div></div>
+      <div class="csv-row"><div class="csv-dot"></div><div class="csv-file">Merged_DBStateSearch_State_all_states_22_May.csv</div><div class="csv-note">May 22, 2025 — all states</div></div>
+      <div class="csv-row active"><div class="csv-dot"></div><div class="csv-file">CTK_Updated_Database_april_22_2025.csv</div><div class="csv-note">Currently active ✓</div></div>
+    </div>
+
+    <div class="warn-box">
+      <strong>Known Issues with the Current Process</strong><br><br>
+      <strong>1. Filename is hardcoded in app.py</strong> — every data update requires a code change + redeployment.<br><br>
+      <strong>2. No automation</strong> — relies on someone manually remembering to export and deploy.<br><br>
+      <strong>3. Old CSV files pile up</strong> — 5 files already exist with no cleanup process.<br><br>
+      <strong>4. No staleness indicator</strong> — there is no way to know from the API how old the compliance data is.<br><br>
+      <strong>Recommendation:</strong> The SQL Server connection (<code>ctk_connection_sql.py</code>) already exists in the project. The data pipeline could be automated to query the MainDB directly and rebuild the FAISS index on a schedule — eliminating the manual steps entirely.
+    </div>
+  </div>
+
+
+  <!-- ── 8. COVERAGE ── -->
+  <div class="section">
+    <div class="section-title">Coverage</div>
+    <h2>Supported Jurisdictions & Lines of Business</h2>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
+      <div class="card">
+        <strong style="display:block; margin-bottom:10px; color:#0f172a;">Jurisdictions (65 total)</strong>
+        <p style="font-size:14px; color:#475569;">50 US states + Washington D.C. + Federal + 14 Canadian provinces and territories. State can be passed as full name (<em>California</em>) or abbreviation (<em>CA</em>) — detected automatically from the question text.</p>
+      </div>
+      <div class="card">
+        <strong style="display:block; margin-bottom:10px; color:#0f172a;">Lines of Business (3)</strong>
+        <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:6px;">
+          <span class="badge badge-get" style="font-size:13px; padding:5px 14px;">Auto</span>
+          <span class="badge badge-post" style="font-size:13px; padding:5px 14px;">Commercial</span>
+          <span class="badge badge-key" style="font-size:13px; padding:5px 14px;">Homeowners</span>
+        </div>
+        <p style="font-size:13px; color:#64748b; margin-top:10px;">Must be passed exactly as shown. Invalid values return a 400 error.</p>
+      </div>
+    </div>
+  </div>
+
+
+</div>
+
+<!-- ══════════════════ FOOTER ══════════════════ -->
+<div class="footer">
+  <strong>AI-CTK-NLP</strong> &nbsp;·&nbsp; Project Documentation &nbsp;·&nbsp; Claim Toolkit &nbsp;·&nbsp; Vaival Technologies
+</div>
+
+</body>
+</html>
