@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Auto Liability — Training Video Script &amp; Storyboard</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    color: #1e293b;
+    background: #f1f5f9;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 980px; margin: 0 auto; padding: 0 20px 80px; }
+
+  /* ---------- HEADER ---------- */
+  header {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 60%, #0f3460 100%);
+    color: #fff;
+    padding: 54px 20px 48px;
+    text-align: center;
+  }
+  header .kicker {
+    font-size: 13px; letter-spacing: 3px; text-transform: uppercase;
+    color: #60a5fa; font-weight: 600; margin-bottom: 14px;
+  }
+  header h1 { font-size: 38px; font-weight: 800; margin-bottom: 12px; line-height: 1.15; }
+  header p { font-size: 17px; color: #cbd5e1; max-width: 640px; margin: 0 auto; }
+
+  /* ---------- QUICK FACTS BAR ---------- */
+  .facts {
+    display: flex; flex-wrap: wrap; justify-content: center; gap: 14px;
+    margin: -32px auto 0; max-width: 880px; position: relative; z-index: 2;
+    padding: 0 20px;
+  }
+  .fact {
+    background: #fff; border-radius: 14px; padding: 20px 26px; text-align: center;
+    box-shadow: 0 10px 30px rgba(15,23,42,.12); flex: 1; min-width: 150px;
+  }
+  .fact .num { font-size: 30px; font-weight: 800; color: #0f3460; }
+  .fact .lbl { font-size: 12px; color: #64748b; text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; }
+
+  /* ---------- SECTION ---------- */
+  section { margin-top: 46px; }
+  .sec-title {
+    font-size: 13px; letter-spacing: 2px; text-transform: uppercase;
+    color: #0f3460; font-weight: 700; margin-bottom: 18px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .sec-title::before { content: ''; width: 28px; height: 3px; background: #0f3460; border-radius: 2px; }
+
+  /* ---------- CARD ---------- */
+  .card {
+    background: #fff; border-radius: 16px; padding: 28px 30px;
+    box-shadow: 0 4px 16px rgba(15,23,42,.06); margin-bottom: 18px;
+  }
+  .card h3 { font-size: 18px; margin-bottom: 10px; color: #0f172a; }
+  .card p { color: #475569; margin-bottom: 8px; }
+  .card ul { margin: 8px 0 4px 20px; }
+  .card li { color: #475569; margin-bottom: 6px; }
+
+  /* ---------- CHECKLIST ---------- */
+  .checklist { list-style: none; margin: 0 !important; }
+  .checklist li {
+    padding: 11px 14px 11px 44px; position: relative; background: #f8fafc;
+    border-radius: 10px; margin-bottom: 8px; border-left: 3px solid #38bdf8;
+  }
+  .checklist li::before {
+    content: '☐'; position: absolute; left: 14px; top: 9px;
+    font-size: 18px; color: #38bdf8;
+  }
+  .checklist strong { color: #0f172a; }
+
+  /* ---------- SCENE INDEX ---------- */
+  .index-table { width: 100%; border-collapse: collapse; }
+  .index-table th {
+    text-align: left; padding: 10px 14px; font-size: 12px; text-transform: uppercase;
+    letter-spacing: 1px; color: #64748b; border-bottom: 2px solid #e2e8f0;
+  }
+  .index-table td { padding: 11px 14px; border-bottom: 1px solid #eef2f7; color: #334155; }
+  .index-table tr:hover td { background: #f8fafc; }
+  .index-table .scene-no {
+    display: inline-block; width: 26px; height: 26px; line-height: 26px; text-align: center;
+    background: #0f3460; color: #fff; border-radius: 7px; font-weight: 700; font-size: 13px;
+  }
+  .index-table .dur { font-variant-numeric: tabular-nums; color: #0f3460; font-weight: 600; }
+  .index-table a { color: #0f172a; text-decoration: none; font-weight: 600; }
+  .index-table a:hover { color: #2563eb; }
+
+  /* ---------- SCENE CARD ---------- */
+  .scene {
+    background: #fff; border-radius: 16px; margin-bottom: 22px; overflow: hidden;
+    box-shadow: 0 4px 16px rgba(15,23,42,.07);
+  }
+  .scene-head {
+    background: linear-gradient(135deg, #0f3460, #16213e);
+    color: #fff; padding: 16px 26px; display: flex; align-items: center; justify-content: space-between;
+  }
+  .scene-head .left { display: flex; align-items: center; gap: 14px; }
+  .scene-head .badge {
+    width: 38px; height: 38px; line-height: 38px; text-align: center;
+    background: rgba(255,255,255,.16); border-radius: 10px; font-weight: 800; font-size: 17px;
+  }
+  .scene-head h3 { font-size: 19px; font-weight: 700; }
+  .scene-head .time {
+    background: #38bdf8; color: #06283d; padding: 5px 13px; border-radius: 20px;
+    font-weight: 700; font-size: 13px; font-variant-numeric: tabular-nums; white-space: nowrap;
+  }
+  .scene-body { padding: 6px 26px 22px; }
+
+  .row { padding: 16px 0; border-bottom: 1px solid #f1f5f9; }
+  .row:last-child { border-bottom: none; }
+  .row .tag {
+    display: inline-flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: .5px; margin-bottom: 7px; padding: 3px 10px;
+    border-radius: 6px;
+  }
+  .tag-screen { background: #e0f2fe; color: #0369a1; }
+  .tag-action { background: #dbeafe; color: #1d4ed8; }
+  .tag-say    { background: #ede9fe; color: #6d28d9; }
+  .tag-show   { background: #fef3c7; color: #b45309; }
+  .tag-ai     { background: #dcfce7; color: #15803d; }
+
+  .row .content { color: #334155; }
+  .row.say .content {
+    font-style: italic; color: #4c1d95; background: #faf5ff; padding: 12px 16px;
+    border-radius: 10px; border-left: 3px solid #8b5cf6; font-size: 15.5px;
+  }
+  .row.action .content ul { margin: 0 0 0 18px; }
+  .row.action .content li { margin-bottom: 5px; }
+  .row.ai .content { background: #f0fdf4; padding: 12px 16px; border-radius: 10px; border-left: 3px solid #22c55e; }
+
+  /* ---------- CALLOUT ---------- */
+  .callout {
+    border-radius: 14px; padding: 20px 24px; margin-bottom: 16px; display: flex; gap: 16px;
+  }
+  .callout .ico { font-size: 26px; line-height: 1; }
+  .callout.tip   { background: #fffbeb; border: 1px solid #fde68a; }
+  .callout.note  { background: #eff6ff; border: 1px solid #bfdbfe; }
+  .callout.warn  { background: #fef2f2; border: 1px solid #fecaca; }
+  .callout h4 { font-size: 15px; margin-bottom: 4px; color: #0f172a; }
+  .callout p { font-size: 14.5px; color: #475569; }
+
+  /* ---------- SCENARIO BOX ---------- */
+  .scenario {
+    background: linear-gradient(135deg, #0f172a, #1e293b); color: #e2e8f0;
+    border-radius: 16px; padding: 28px 30px; margin-bottom: 18px;
+  }
+  .scenario h3 { color: #fff; font-size: 18px; margin-bottom: 14px; }
+  .scenario .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .scenario .veh {
+    background: rgba(255,255,255,.06); border-radius: 12px; padding: 16px 18px;
+    border: 1px solid rgba(255,255,255,.1);
+  }
+  .scenario .veh .h { font-size: 13px; color: #60a5fa; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+  .scenario .veh .l { font-size: 14px; margin-bottom: 4px; }
+  .scenario .veh .l b { color: #fff; }
+  .scenario .verdict { margin-top: 14px; font-size: 14.5px; background: rgba(34,197,94,.12); border: 1px solid rgba(34,197,94,.3); padding: 12px 16px; border-radius: 10px; }
+
+  /* ---------- LEGEND ---------- */
+  .legend { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+  .legend span { font-size: 12.5px; padding: 5px 12px; border-radius: 20px; font-weight: 600; }
+
+  /* ---------- FOOTER ---------- */
+  footer { text-align: center; margin-top: 50px; padding-top: 24px; border-top: 1px solid #e2e8f0; color: #94a3b8; font-size: 13px; }
+
+  @media (max-width: 640px) {
+    header h1 { font-size: 28px; }
+    .scenario .grid { grid-template-columns: 1fr; }
+    .scene-head { flex-direction: column; gap: 10px; align-items: flex-start; }
+  }
+  @media print {
+    body { background: #fff; }
+    .scene, .card, .callout { box-shadow: none; border: 1px solid #e2e8f0; page-break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="kicker">Claim Toolkit · Training Production Kit</div>
+  <h1>Auto Liability — Training Video Script &amp; Storyboard</h1>
+  <p>A complete, scene-by-scene shooting script. Follow it top to bottom while screen-recording the app — read the narration, perform the actions, and you'll have a polished training video.</p>
+</header>
+
+<div class="facts">
+  <div class="fact"><div class="num">~8 min</div><div class="lbl">Total Runtime</div></div>
+  <div class="fact"><div class="num">11</div><div class="lbl">Scenes</div></div>
+  <div class="fact"><div class="num">1</div><div class="lbl">Demo Claim</div></div>
+  <div class="fact"><div class="num">0</div><div class="lbl">Editing Skills Needed</div></div>
+</div>
+
+<div class="wrap">
+
+  <!-- HOW TO USE -->
+  <section>
+    <div class="sec-title">How To Use This Script</div>
+    <div class="card">
+      <p>This is a <strong>shooting script</strong> — everything you need to record a clean training video without guessing. Each scene below gives you four things:</p>
+      <div class="legend">
+        <span class="tag-screen" style="background:#e0f2fe;color:#0369a1;">🖥️ ON SCREEN — what the viewer sees</span>
+        <span class="tag-action" style="background:#dbeafe;color:#1d4ed8;">🖱️ DO — what you click</span>
+        <span class="tag-say" style="background:#ede9fe;color:#6d28d9;">🎙️ SAY — read this aloud, word for word</span>
+        <span class="tag-show" style="background:#fef3c7;color:#b45309;">💬 CALLOUT — text to add in editing (optional)</span>
+      </div>
+      <p style="margin-top:14px;">Read the <strong>SAY</strong> lines in a calm, friendly pace. Don't rush. If you fumble a line, pause for 2 seconds and say it again — you'll trim the bad take later. Silence is easy to cut; talking over a mistake is not.</p>
+    </div>
+  </section>
+
+  <!-- BEFORE YOU RECORD -->
+  <section>
+    <div class="sec-title">Before You Record — Setup Checklist</div>
+    <div class="card">
+      <ul class="checklist">
+        <li><strong>Pick your tool.</strong> Loom (easiest), Camtasia (most polish), or OBS Studio (free). Loom is recommended for a first video.</li>
+        <li><strong>Set recording to 1080p</strong> and record the browser window only — not the whole desktop.</li>
+        <li><strong>Use a clean demo login</strong> — a training account, not a real customer's live data. No real claimant names or PII on screen.</li>
+        <li><strong>Pre-load the demo claim data</strong> (see the scenario box below) so you're not typing long text on camera. Have it ready to paste.</li>
+        <li><strong>Close email, chat, and notifications.</strong> A Teams popup mid-recording means re-shooting the scene.</li>
+        <li><strong>Zoom the browser to 110–125%</strong> so buttons and text are readable on smaller screens.</li>
+        <li><strong>Use a quiet room</strong> and a headset mic if you have one. Phone earbuds beat a laptop mic.</li>
+        <li><strong>Do one practice run</strong> of the full click-path with no narration, so the app state is fresh and you know where everything is.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- DEMO SCENARIO -->
+  <section>
+    <div class="sec-title">The Demo Claim — Use This Throughout</div>
+    <div class="scenario">
+      <h3>🚗 Two-Vehicle Intersection Collision</h3>
+      <div class="grid">
+        <div class="veh">
+          <div class="h">Vehicle 1 — Insured</div>
+          <div class="l"><b>Driver:</b> John Smith</div>
+          <div class="l"><b>Travel:</b> Northbound on Main St</div>
+          <div class="l"><b>Right of way:</b> Had green light</div>
+          <div class="l"><b>Speed:</b> ~30 mph (posted limit)</div>
+        </div>
+        <div class="veh">
+          <div class="h">Vehicle 2 — Claimant</div>
+          <div class="l"><b>Driver:</b> Jane Doe</div>
+          <div class="l"><b>Travel:</b> Eastbound on Oak Ave</div>
+          <div class="l"><b>Right of way:</b> Ran the stop sign</div>
+          <div class="l"><b>Speed:</b> Estimated above limit</div>
+        </div>
+      </div>
+      <div class="verdict">⚖️ <b>Why this scenario:</b> It produces a clear liability picture — Driver 2 failed to yield and broke the right-of-way and lookout duties. That makes every part of the product (duty breach analysis, assessment, settlement) easy to demonstrate convincingly.</div>
+    </div>
+    <div class="callout note">
+      <div class="ico">📌</div>
+      <div>
+        <h4>Match the script to your real screens</h4>
+        <p>The scenes below follow the standard Auto Liability flow. If a button label or page name differs slightly in your build, just say what's actually on screen — the structure stays the same.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SCENE INDEX -->
+  <section>
+    <div class="sec-title">Scene Index</div>
+    <div class="card" style="padding:18px 22px;">
+      <table class="index-table">
+        <thead><tr><th>#</th><th>Scene</th><th>Runtime</th><th>Covers</th></tr></thead>
+        <tbody>
+          <tr><td><span class="scene-no">1</span></td><td><a href="#s1">Welcome &amp; What You'll Learn</a></td><td class="dur">0:20</td><td>Intro title card</td></tr>
+          <tr><td><span class="scene-no">2</span></td><td><a href="#s2">The Dashboard &amp; Navigation</a></td><td class="dur">0:35</td><td>Layout, menus</td></tr>
+          <tr><td><span class="scene-no">3</span></td><td><a href="#s3">Creating a New Claim</a></td><td class="dur">0:45</td><td>New claim form</td></tr>
+          <tr><td><span class="scene-no">4</span></td><td><a href="#s4">Location, Details &amp; Accident Type</a></td><td class="dur">1:00</td><td>Scene details, AI auto-fill</td></tr>
+          <tr><td><span class="scene-no">5</span></td><td><a href="#s5">Adding Parties &amp; Vehicles</a></td><td class="dur">0:50</td><td>Drivers, vehicles</td></tr>
+          <tr><td><span class="scene-no">6</span></td><td><a href="#s6">Facts &amp; Statements + Ask CTK</a></td><td class="dur">1:00</td><td>Statements, AI summary</td></tr>
+          <tr><td><span class="scene-no">7</span></td><td><a href="#s7">Investigation Checklist</a></td><td class="dur">0:45</td><td>Checklist, legal summary</td></tr>
+          <tr><td><span class="scene-no">8</span></td><td><a href="#s8">Assessment &amp; Duty Breaches</a></td><td class="dur">1:30</td><td>Core liability analysis</td></tr>
+          <tr><td><span class="scene-no">9</span></td><td><a href="#s9">Negotiation &amp; Settlement</a></td><td class="dur">0:50</td><td>Evidence, settlement</td></tr>
+          <tr><td><span class="scene-no">10</span></td><td><a href="#s10">The Ask CTK AI Advantage</a></td><td class="dur">0:30</td><td>AI recap</td></tr>
+          <tr><td><span class="scene-no">11</span></td><td><a href="#s11">Wrap-Up &amp; Getting Help</a></td><td class="dur">0:20</td><td>Outro</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ SCENES ============ -->
+  <section>
+    <div class="sec-title">The Full Script</div>
+
+    <!-- SCENE 1 -->
+    <div class="scene" id="s1">
+      <div class="scene-head"><div class="left"><div class="badge">1</div><h3>Welcome &amp; What You'll Learn</h3></div><div class="time">0:20</div></div>
+      <div class="scene-body">
+        <div class="row"><span class="tag tag-screen">🖥️ On Screen</span><div class="content">Title card or the app login screen. Show the Auto Liability logo / product name. Keep it clean and static.</div></div>
+        <div class="row say"><span class="tag tag-say">🎙️ Say</span><div class="content">"Welcome to Auto Liability by Claim Toolkit. In the next few minutes, I'll walk you through handling a claim from start to finish — creating it, adding the parties, capturing statements, running the liability assessment, and reaching a settlement. By the end, you'll be ready to work your first claim with confidence. Let's get started."</div></div>
+        <div class="row"><span class="tag tag-show">💬 Callout</span><div class="content">On-screen title text: <strong>"Auto Liability — Handling a Claim End to End"</strong></div></div>
+      </div>
+    </div>
+
+    <!-- SCENE 2 -->
+    <div class="scene" id="s2">
+      <div class="scene-head"><div class="left"><div class="badge">2</div><h3>The Dashboard &amp; Navigation</h3></div><div class="time">0:35</div></div>
+      <div class="scene-body">
+        <div class="row"><span class="tag tag-screen">🖥️ On Screen</span><div class="content">The main dashboard / claims list after login. The list of existing claims and the left or top navigation menu.</div></div>
+        <div class="row action"><span class="tag tag-action">🖱️ Do</span><div class="content"><ul><li>Slowly move the cursor across the main navigation so each section is visible.</li><li>Hover (don't click) over the claims list to show how claims are organized.</li></ul></div></div>
+        <div class="row say"><span class="tag tag-say">🎙️ Say</span><div class="content">"This is your dashboard — the home base for all your claims. Every claim you're working on lives here, and you can see its status at a glance. Across the navigation you'll find the key stages of a claim: the claim details, the parties involved, the investigation, the assessment, and finally negotiation and settlement. We'll touch each of these. First, let's create a brand-new claim."</div></div>
+        <div class="row"><span class="tag tag-show">💬 Callout</span><div class="content">Briefly highlight or circle the "New Claim" button to lead into the next scene.</div></div>
+      </div>
+    </div>
+
+    <!-- SCENE 3 -->
+    <div class="scene" id="s3">
+      <div class="scene-head"><div class="left"><div class="badge">3</div><h3>Creating a New Claim</h3></div><div class="time">0:45</div></div>
+      <div class="scene-body">
+        <div class="row action"><span class="tag tag-action">🖱️ Do</span><div class="content"><ul><li>Click <strong>New Claim</strong>.</li><li>Fill the core fields: claim number (or let it auto-generate), date of loss, claim type.</li><li>Paste prepared values — don't type long entries live.</li><li>Click <strong>Save</strong>.</li></ul></div></div>
+        <div class="row say"><span class="tag tag-say">🎙️ Say</span><div class="content">"To start a new claim, I'll click 'New Claim.' I'll enter the basics — the date the accident happened and the type of claim. Notice the system can generate the claim number for me, so there's nothing to memorize. Once I've filled in the essentials, I click Save — and just like that, the claim is created and ready to build out."</div></div>
+        <div class="row"><span class="tag tag-show">💬 Callout</span><div class="content">When Save succeeds, add a small green checkmark callout: <strong>"Claim created ✓"</strong></div></div>
+      </div>
+    </div>
+
+    <!-- SCENE 4 -->
+    <div class="scene" id="s4">
+      <div class="scene-head"><div class="left"><div class="badge">4</div><h3>Location, Details &amp; Accident Type</h3></div><div class="time">1:00</div></div>
+      <div class="scene-body">
+        <div class="row"><span class="tag tag-screen">🖥️ On Screen</span><div class="content">The Location, Details &amp; Types page. Map / location field, date &amp; time, accident type dropdown, and the condition fields (weather, lighting, area, speed limit).</div></div>
+        <div class="row action"><span class="tag tag-action">🖱️ Do</span><div class="content"><ul><li>Enter the accident location (Main St &amp; Oak Ave intersection) and date/time.</li><li>Open the <strong>Accident Type</strong> dropdown — show the options, select the matching type.</li><li>Click <strong>Save</strong>.</li></ul></div></div>
+        <div class="row say"><span class="tag tag-say">🎙️ Say</span><div class="content">"Next we capture where and when the accident happened. I'll set the location — the intersection of Main Street and Oak Avenue — and the date and time. Then I'll choose the accident type from this dropdown. Now here's where the product really helps you: once I save these details…"</div></div>
+        <div class="row ai"><span class="tag tag-ai">🤖 Ask CTK Moment</span><div class="content"><strong>This is the AI highlight.</strong> After Save, the conditions fields (Weather, Lighting, Area, Speed Limit) populate automatically a moment later. Pause and let the viewer see it happen. If the fields show an "AI" badge or a subtle update, zoom in on it.</div></div>
+        <div class="row say"><span class="tag tag-say">🎙️ Say</span><div class="content">"…watch the condition fields. The system's built-in AI, Ask CTK, fills in details like the weather, lighting, and speed limit for that location and time — automatically, in the background. You didn't have to look any of that up. It just appears, and you're free to adjust it if needed."</div></div>
+        <div class="row"><span class="tag tag-show">💬 Callout</span><div class="content">Add a green callout near the auto-filled fields: <strong>"Filled automatically by Ask CTK AI"</strong></div></div>
+      </div>
+    </div>
+
+    <!-- SCENE 5 -->
+    <div class="scene" id="s5">
+      <div class="scene-head"><div class="left"><div class="badge">5</div><h3>Adding Parties &amp; Vehicles</h3></div><div class="time">0:50</div></div>
+      <div class="scene-body">
+        <div class="row"><span class="tag tag-screen">🖥️ On Screen</span><div class="content">The Parties section. Form to add a driver, their vehicle, and role in the accident.</div></div>
+        <div class="row action"><span class="tag tag-action">🖱️ Do</span><div class="content"><ul><li>Add <strong>Vehicle 1 — John Smith</strong>: driver name, vehicle, direction of travel (Northbound, Main St).</li><li>Save, then add <strong>Vehicle 2 — Jane Doe</strong>: Eastbound, Oak Ave.</li><li>Show the two parties now listed together.</li></ul></div></div>
+        <div class="row say"><span class="tag tag-say">🎙️ Say</span><div class="content">"Now let's add the people involved. Our first driver is John Smith, traveling north on Main Street. I'll enter his details and his vehicle. Then I'll add the second driver, Jane Doe, who was heading east on Oak Avenue. You can add as many parties as the accident involves — drivers, passengers, and witnesses. With both drivers entered, we have the full picture of who was on the scene."</div></div>
+        <div class="row"><span class="tag tag-show">💬 Callout</span><div class="content">Optional: label each party card on screen — "Insured" and "Claimant" — to keep viewers oriented.</div></div>
+      </div>
+    </div>
+
+    <!-- SCENE 6 -->
+    <div class="scene" id="s6">
+      <div class="scene-head"><div class="left"><div class="badge">6</div><h3>Facts &amp; Statements + Ask CTK Summary</h3></div><div class="time">1:00</div></div>
+      <div class="scene-body">
+        <div class="row"><span class="tag tag-screen">🖥️ On Screen</span><div class="content">The Facts / Statements editor for a party. A text area for the statement plus the duty-related fields.</div></div>
+        <div class="row action"><span class="tag tag-action">🖱️ Do</span><div class="content"><ul><li>Select John Smith. Paste his statement (he had the green light, was traveling at the limit, the other car ran the stop sign).</li><li>Click <strong>Save</strong>.</li></ul></div></div>
+        <div class="row say"><span class="tag tag-say">🎙️ Say</span><div class="content">"Here's where we record what each party says happened. I'll open John Smith's statement and enter his account — he had the green light, was traveling at the speed limit, when the other vehicle ran the stop sign and entered the intersection. I'll save that. Now, watch what happens next."</div></div>
+        <div class="row ai"><span class="tag tag-ai">🤖 Ask CTK Moment</span><div class="content"><strong>Key AI demo.</strong> After saving, a few seconds later an <strong>AI Summary</strong> appears for the statement (with a badge and a timestamp like "Generated 10 seconds ago"). Pause and let it appear on camera. If there's a <strong>Regenerate</strong> button, point to it.</div></div>
+        <div class="row say"><span class="tag tag-say">🎙️ Say</span><div class="content">"Within a few seconds, Ask CTK reads the statement and writes a clean, structured summary for you — the direction of travel, the speed, who had the right of way, and any contradictions. You saved the statement; the AI did the analysis. And if you ever want a fresh take, just click Regenerate. This works the same way for every party's statement."</div></div>
+        <div class="row"><span class="tag tag-show">💬 Callout</span><div class="content">Green callout over the summary: <strong>"AI-generated summary — no waiting, no extra clicks"</strong></div></div>
+      </div>
+    </div>
+
+    <!-- SCENE 7 -->
+    <div class="scene" id="s7">
+      <div class="scene-head"><div class="left"><div class="badge">7</div><h3>Investigation Checklist</h3></div><div class="time">0:45</div></div>
+      <div class="scene-body">
+        <div class="row"><span class="tag tag-screen">🖥️ On Screen</span><div class="content">The Investigation Checklist page — checklist items and the Legal Summary block.</div></div>
+        <div class="row action"><span class="tag tag-action">🖱️ Do</span><div class="content"><ul><li>Check off a few investigation items (police report obtained, photos collected, witness contacted).</li><li>Click <strong>Save</strong>. Show the Legal Summary populating.</li></ul></div></div>
+        <div class="row say"><span class="tag tag-say">🎙️ Say</span><div class="content">"The investigation checklist keeps you organized and makes sure nothing gets missed. I'll mark the steps we've completed — the police report is in, photos are collected, and we've spoken with a witness. As I save these, the system pulls together a legal summary, giving you a running picture of where the investigation stands and what still needs attention."</div></div>
+        <div class="row ai"><span class="tag tag-ai">🤖 Ask CTK Moment</span><div class="content">If the Legal Summary is AI-generated in your build, mention it: "and again, Ask CTK helps draft this summary for you." If not, skip that line.</div></div>
+      </div>
+    </div>
+
+    <!-- SCENE 8 -->
+    <div class="scene" id="s8">
+      <div class="scene-head"><div class="left"><div class="badge">8</div><h3>Assessment &amp; Duty Breaches</h3></div><div class="time">1:30</div></div>
+      <div class="scene-body">
+        <div class="callout note" style="margin:14px 0;"><div class="ico">⭐</div><div><h4>This is the most important scene</h4><p>The Assessment is the heart of the product. Slow down here. This is where the liability decision gets made, and where the AI's value is clearest.</p></div></div>
+        <div class="row"><span class="tag tag-screen">🖥️ On Screen</span><div class="content">The Assessment page — Suggested Assessment, Point of Impact, and the Actual Assessment with the four duties: Right of Way, Speed, Lookout, and Avoidance.</div></div>
+        <div class="row action"><span class="tag tag-action">🖱️ Do</span><div class="content"><ul><li>Show the <strong>Suggested Assessment</strong> and <strong>Point of Impact</strong> the AI has prepared.</li><li>Walk through each duty for both drivers: Right of Way, Speed, Lookout, Avoidance.</li><li>Mark Jane Doe as having breached Right of Way and Lookout (she ran the stop sign).</li><li>Save and show the <strong>Overall Duty Breach Summary</strong>.</li></ul></div></div>
+        <div class="row say"><span class="tag tag-say">🎙️ Say</span><div class="content">"Now we reach the assessment — this is where we determine who's at fault and why. The system gives you a suggested assessment and even identifies the likely point of impact to get you started. Liability comes down to four driving duties: right of way, speed, lookout, and avoidance. For each driver, we evaluate whether they met or breached each one."</div></div>
+        <div class="row say"><span class="tag tag-say">🎙️ Say</span><div class="content">"In our case, John Smith had the green light and was driving at the limit — he met his duties. Jane Doe, however, ran the stop sign, so she breached her right-of-way duty and her duty to keep a proper lookout. I'll record those breaches here."</div></div>
+        <div class="row ai"><span class="tag tag-ai">🤖 Ask CTK Moment</span><div class="content">After saving, the <strong>Overall Duty Breach Summary</strong> and the per-duty party summaries fill in via AI. Let them appear. Scroll gently so each AI-written summary is visible.</div></div>
+        <div class="row say"><span class="tag tag-say">🎙️ Say</span><div class="content">"As I record the breaches, Ask CTK writes up the duty breach summaries for each party and an overall summary of the evidence. This is the analysis that normally takes the longest to write by hand — and here it's done for you, grounded in the statements and facts you've already entered. You review it, adjust if needed, and move on."</div></div>
+        <div class="row"><span class="tag tag-show">💬 Callout</span><div class="content">Callout over the four duties: <strong>"4 duties: Right of Way · Speed · Lookout · Avoidance"</strong>. Then green callout on the summaries: <strong>"AI-written duty breach analysis"</strong></div></div>
+      </div>
+    </div>
+
+    <!-- SCENE 9 -->
+    <div class="scene" id="s9">
+      <div class="scene-head"><div class="left"><div class="badge">9</div><h3>Negotiation &amp; Settlement</h3></div><div class="time">0:50</div></div>
+      <div class="scene-body">
+        <div class="row"><span class="tag tag-screen">🖥️ On Screen</span><div class="content">The Negotiation &amp; Settlement page — evidence of duty breaches and the settlement entry.</div></div>
+        <div class="row action"><span class="tag tag-action">🖱️ Do</span><div class="content"><ul><li>Show the evidence of duty breaches carried over from the assessment.</li><li>Enter a settlement figure / liability split.</li><li>Click <strong>Save</strong>.</li></ul></div></div>
+        <div class="row say"><span class="tag tag-say">🎙️ Say</span><div class="content">"Finally, we move to negotiation and settlement. Notice that the evidence of duty breaches we built in the assessment flows straight through to here — both drivers' right-of-way summaries are ready to support your position. With the liability picture clear, I'll record the settlement terms and save. The claim is now fully documented, from the first detail to the final settlement — with a complete trail behind every decision."</div></div>
+        <div class="row"><span class="tag tag-show">💬 Callout</span><div class="content">Callout: <strong>"Evidence flows automatically from Assessment → Settlement"</strong></div></div>
+      </div>
+    </div>
+
+    <!-- SCENE 10 -->
+    <div class="scene" id="s10">
+      <div class="scene-head"><div class="left"><div class="badge">10</div><h3>The Ask CTK AI Advantage</h3></div><div class="time">0:30</div></div>
+      <div class="scene-body">
+        <div class="row"><span class="tag tag-screen">🖥️ On Screen</span><div class="content">Quickly scroll back through the claim — the auto-filled conditions, the statement summary, the duty breach analysis. A montage of the green AI moments.</div></div>
+        <div class="row say"><span class="tag tag-say">🎙️ Say</span><div class="content">"One thing to notice across everything we did: you never waited on the AI. Every time you saved, your work finished instantly — and Ask CTK filled in the conditions, summarized the statements, and drafted the duty breach analysis quietly in the background. It does the heavy writing so you can focus on the judgment calls. That's the Ask CTK difference — it works for you without ever slowing you down."</div></div>
+        <div class="row"><span class="tag tag-show">💬 Callout</span><div class="content">On-screen text: <strong>"Ask CTK — invisible AI. You save. It assists. No waiting."</strong></div></div>
+      </div>
+    </div>
+
+    <!-- SCENE 11 -->
+    <div class="scene" id="s11">
+      <div class="scene-head"><div class="left"><div class="badge">11</div><h3>Wrap-Up &amp; Getting Help</h3></div><div class="time">0:20</div></div>
+      <div class="scene-body">
+        <div class="row"><span class="tag tag-screen">🖥️ On Screen</span><div class="content">Return to the dashboard, or a closing title card with support contact info.</div></div>
+        <div class="row say"><span class="tag tag-say">🎙️ Say</span><div class="content">"And that's a complete claim, start to finish. You created it, added the parties, captured statements, ran the liability assessment, and reached a settlement — with Ask CTK helping every step of the way. If you ever get stuck, you'll find more training resources right here in the app. Thanks for watching, and welcome to Auto Liability."</div></div>
+        <div class="row"><span class="tag tag-show">💬 Callout</span><div class="content">Closing card: <strong>"Need help? Find more guides under Training. · Claim Toolkit"</strong></div></div>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- AFTER YOU RECORD -->
+  <section>
+    <div class="sec-title">After You Record — Polish &amp; Publish</div>
+    <div class="card">
+      <ul class="checklist">
+        <li><strong>Trim the dead air</strong> at the start and end of each scene, and cut any fumbled lines.</li>
+        <li><strong>Add the text callouts</strong> from the 💬 lines — especially the green "Ask CTK" labels. They make the AI value obvious even with sound off.</li>
+        <li><strong>Add a simple intro/outro card</strong> with the product name. Loom and Camtasia both have built-in templates.</li>
+        <li><strong>Turn on auto-captions</strong> — many viewers watch training with sound off, and it improves accessibility.</li>
+        <li><strong>Keep zoom-ins for the AI moments</strong> (Scenes 4, 6, 8). A gentle zoom draws the eye to the auto-filled fields.</li>
+        <li><strong>Export at 1080p MP4</strong> and upload to the app's Training section.</li>
+      </ul>
+    </div>
+    <div class="callout tip">
+      <div class="ico">💡</div>
+      <div>
+        <h4>Pro tip: record it in modules</h4>
+        <p>If 8 minutes feels long, record each scene as its own short clip and publish them as a numbered series ("1. Creating a Claim," "2. Adding Parties," and so on). Shorter videos are easier to re-record when the product changes, and learners can jump to exactly the part they need.</p>
+      </div>
+    </div>
+    <div class="callout warn">
+      <div class="ico">🔒</div>
+      <div>
+        <h4>Before you publish — one last check</h4>
+        <p>Scrub the final video for any real claimant names, policy numbers, addresses, or other PII that may have slipped in. Use the demo scenario data only.</p>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    Auto Liability Training Production Kit · Claim Toolkit · Internal use<br>
+    Script written for the standard claim workflow — adjust narration to match your live screens.
+  </footer>
+
+</div>
+</body>
+</html>
