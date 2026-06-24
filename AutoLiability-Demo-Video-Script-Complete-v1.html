@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Auto Liability — Complete Demo Video Script</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; color:#1e293b; background:#f1f5f9; line-height:1.55; -webkit-font-smoothing:antialiased; }
+  .wrap { max-width:1000px; margin:0 auto; padding:0 20px 70px; }
+
+  header { background:linear-gradient(135deg,#1a1a2e,#16213e 60%,#0f3460); color:#fff; padding:46px 20px 40px; text-align:center; }
+  header .kicker { font-size:12px; letter-spacing:3px; text-transform:uppercase; color:#60a5fa; font-weight:700; margin-bottom:10px; }
+  header h1 { font-size:30px; font-weight:800; margin-bottom:8px; }
+  header p { color:#cbd5e1; font-size:15px; max-width:700px; margin:0 auto; }
+
+  .facts { display:flex; flex-wrap:wrap; justify-content:center; gap:12px; margin:-26px auto 0; max-width:880px; padding:0 20px; }
+  .fact { background:#fff; border-radius:12px; padding:14px 18px; text-align:center; box-shadow:0 10px 26px rgba(15,23,42,.12); flex:1; min-width:115px; }
+  .fact .num { font-size:19px; font-weight:800; color:#0f3460; }
+  .fact .lbl { font-size:10px; color:#64748b; text-transform:uppercase; letter-spacing:.6px; margin-top:3px; }
+
+  section { margin-top:32px; }
+  .sec-title { font-size:13px; letter-spacing:2px; text-transform:uppercase; color:#0f3460; font-weight:700; margin-bottom:13px; display:flex; align-items:center; gap:10px; }
+  .sec-title::before { content:''; width:26px; height:3px; background:#0f3460; border-radius:2px; }
+  .card { background:#fff; border-radius:14px; padding:18px 22px; box-shadow:0 4px 14px rgba(15,23,42,.06); margin-bottom:14px; }
+  .chk { list-style:none; } .chk li { padding:8px 12px 8px 36px; position:relative; background:#f8fafc; border-radius:9px; margin-bottom:7px; border-left:3px solid #38bdf8; font-size:14px; color:#475569; }
+  .chk li::before { content:'☐'; position:absolute; left:13px; top:7px; font-size:15px; color:#38bdf8; } .chk b { color:#0f172a; }
+
+  .part { margin-top:28px; border-radius:14px 14px 0 0; padding:15px 22px; color:#fff; font-weight:800; font-size:17px; display:flex; align-items:center; gap:12px; }
+  .part .time { margin-left:auto; font-size:12.5px; font-weight:700; background:rgba(255,255,255,.18); padding:3px 11px; border-radius:14px; }
+  .part.web { background:linear-gradient(135deg,#0f3460,#1d4ed8); }
+  .part.mob { background:linear-gradient(135deg,#0a7b47,#16a34a); }
+
+  .scene { background:#fff; border-bottom:1px solid #eef2f7; padding:13px 22px; }
+  .scene:last-child { border-radius:0 0 14px 14px; }
+  .scene .sh { display:flex; align-items:center; gap:10px; margin-bottom:7px; }
+  .scene .badge { width:26px; height:26px; line-height:26px; text-align:center; background:#0f3460; color:#fff; border-radius:7px; font-weight:800; font-size:12px; }
+  .scene .ttl { font-size:15px; font-weight:700; color:#0f172a; }
+  .scene .time { margin-left:auto; font-size:12px; font-weight:700; color:#0f3460; font-variant-numeric:tabular-nums; }
+  .line { display:flex; gap:9px; padding:5px 0; }
+  .line .tag { flex-shrink:0; font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:.5px; padding:3px 8px; border-radius:5px; height:fit-content; margin-top:1px; }
+  .t-do { background:#dbeafe; color:#1d4ed8; } .t-show { background:#dcfce7; color:#15803d; } .t-say { background:#ede9fe; color:#6d28d9; } .t-cov { background:#f1f5f9; color:#475569; }
+  .line .body { font-size:14px; color:#334155; } .line.say .body { font-style:italic; color:#4c1d95; font-size:15px; }
+  .line .body .ai { display:inline-block; background:#16a34a; color:#fff; font-size:9px; font-weight:800; padding:1px 5px; border-radius:4px; margin-left:4px; vertical-align:middle; letter-spacing:.4px; }
+  .line .body .ext { display:inline-block; background:#e0f2fe; color:#0369a1; font-size:9px; font-weight:800; padding:1px 5px; border-radius:4px; margin-left:4px; vertical-align:middle; }
+  .chips { display:flex; flex-wrap:wrap; gap:5px; } .chips span { font-size:11px; background:#f1f5f9; color:#475569; padding:2px 8px; border-radius:5px; border:1px solid #e2e8f0; }
+
+  .callout { border-radius:12px; padding:15px 18px; margin-top:14px; font-size:13.5px; }
+  .callout.warn { background:#fef2f2; border:1px solid #fecaca; color:#7f1d1d; } .callout.tip { background:#fffbeb; border:1px solid #fde68a; color:#475569; }
+  .callout b { color:#0f172a; } .callout ul { margin:6px 0 0 18px; } .callout li { margin-bottom:5px; }
+  footer { text-align:center; margin-top:34px; color:#94a3b8; font-size:12px; }
+  @media (max-width:600px){ header h1{font-size:23px;} }
+  @media print { body{background:#fff;} .card,.scene,.part{box-shadow:none;} }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="kicker">Claim Toolkit · Complete Demo</div>
+  <h1>Auto Liability — Complete Demo Video Script</h1>
+  <p>Covers every part. First the full web app, live. Then the phone app, shown with screenshots. The words are short and easy to read out loud.</p>
+</header>
+
+<div class="facts">
+  <div class="fact"><div class="num">~13 min</div><div class="lbl">Runtime</div></div>
+  <div class="fact"><div class="num">2 Parts</div><div class="lbl">Web → Phone</div></div>
+  <div class="fact"><div class="num">13 + 10</div><div class="lbl">Scenes</div></div>
+  <div class="fact"><div class="num">Every feature</div><div class="lbl">Coverage</div></div>
+</div>
+
+<div class="wrap">
+
+  <!-- ===================== PART 1 — WEB ===================== -->
+  <div class="part web">🖥️ PART 1 — Web App (live)<span class="time">~8:00</span></div>
+
+  <div class="scene">
+    <div class="sh"><span class="badge">1</span><span class="ttl">Intro</span><span class="time">0:15</span></div>
+    <div class="line say"><span class="tag t-say">Say</span><div class="body">"This is Auto Liability by Claim Toolkit. First I'll show you the web app, start to finish. Then I'll show how the other driver shares their side using a phone."</div></div>
+  </div>
+
+  <div class="scene">
+    <div class="sh"><span class="badge">2</span><span class="ttl">Login</span><span class="time">0:15</span></div>
+    <div class="line"><span class="tag t-do">Do</span><div class="body">Log in → land on the Dashboard.</div></div>
+    <div class="line say"><span class="tag t-say">Say</span><div class="body">"Adjusters log in right here. It's safe, and set up for your company."</div></div>
+    <div class="line"><span class="tag t-cov">Covers</span><div class="body"><div class="chips"><span>Login</span></div></div></div>
+  </div>
+
+  <div class="scene">
+    <div class="sh"><span class="badge">3</span><span class="ttl">Dashboard — home screen</span><span class="time">1:00</span></div>
+    <div class="line"><span class="tag t-do">Do</span><div class="body">Show the 4 areas: <b>Weather widget</b>, <b>Loss Location Finder</b>, <b>Ask CTK</b>, <b>My Last Ten Claims</b>.</div></div>
+    <div class="line say"><span class="tag t-say">Say</span><div class="body">"This is the home screen. The weather box shows the weather for the day of the crash — you can even ask the AI about it.<span class="ai">AI</span><span class="ext">EXT Weather</span> 'Loss Location Finder' opens the spot on Google Maps.<span class="ext">EXT Maps</span> 'Ask CTK' lets you ask about a claim in plain words.<span class="ai">AI</span> And 'My Last Ten Claims' shows what you worked on last."</div></div>
+    <div class="line"><span class="tag t-cov">Covers</span><div class="body"><div class="chips"><span>Weather Widget</span><span>Historical Weather</span><span>Loss Location Finder</span><span>Ask CTK</span><span>My Last Ten Claims</span></div></div></div>
+  </div>
+
+  <div class="scene">
+    <div class="sh"><span class="badge">4</span><span class="ttl">New &amp; Find Assessment</span><span class="time">0:45</span></div>
+    <div class="line"><span class="tag t-do">Do</span><div class="body"><b>New Assessment</b> → <b>Find Claim to Add</b> (search) or <b>Add Manual</b> (form). Then <b>Find Assessment → Find Claim</b>.</div></div>
+    <div class="line say"><span class="tag t-say">Say</span><div class="body">"To start, you search for a claim, or add one by hand. You can find and open any claim you're working on."</div></div>
+    <div class="line"><span class="tag t-cov">Covers</span><div class="body"><div class="chips"><span>Find Claim to Add</span><span>Add Manual</span><span>Find Assessment</span></div></div></div>
+  </div>
+
+  <div class="scene">
+    <div class="sh"><span class="badge">5</span><span class="ttl">Claim Detail — Location, Details &amp; Type</span><span class="time">0:50</span></div>
+    <div class="line"><span class="tag t-do">Do</span><div class="body">Open the claim. Show <b>Order Police Report</b>, <b>Upload Police Report</b>, <b>Weather Report</b>, <b>Google Map Search</b>.</div></div>
+    <div class="line say"><span class="tag t-say">Say</span><div class="body">"Every claim starts with the basics — where it happened, when, and what kind of crash. From here you can order or upload the police report, get the weather for that day<span class="ext">EXT Weather</span>, and find the spot on the map.<span class="ext">EXT Maps</span>"</div></div>
+    <div class="line"><span class="tag t-cov">Covers</span><div class="body"><div class="chips"><span>Claim Basic Detail</span><span>Order/Upload Police Report</span><span>Weather Report</span><span>Google Map Search</span></div></div></div>
+  </div>
+
+  <div class="scene">
+    <div class="sh"><span class="badge">6</span><span class="ttl">Investigation Checklist &amp; Legal Summary</span><span class="time">0:40</span></div>
+    <div class="line"><span class="tag t-do">Do</span><div class="body">Show the checklist — mark items <b>Not Applicable / Confirmed / Disputed</b>. Show the <b>Legal Summary</b>.</div></div>
+    <div class="line say"><span class="tag t-say">Say</span><div class="body">"The checklist keeps track of every step. You mark each one Confirmed, Disputed, or Not Applicable. It all adds up into a short legal summary."</div></div>
+    <div class="line"><span class="tag t-cov">Covers</span><div class="body"><div class="chips"><span>Check List / Disputes / Resolution</span><span>Legal Summary</span></div></div></div>
+  </div>
+
+  <div class="scene">
+    <div class="sh"><span class="badge">7</span><span class="ttl">Assessment — Suggested &amp; Actual</span><span class="time">1:00</span></div>
+    <div class="line"><span class="tag t-do">Do</span><div class="body">Open <b>Suggested Assessment</b>. Then <b>Actual Assessment</b> — duty breaches, <b>Evidence of Duty Breaches</b>, <b>Overall Summary</b>.</div></div>
+    <div class="line say"><span class="tag t-say">Say</span><div class="body">"This is the most important part. The system gives you a suggested answer first. Then you fill in the real one — which driving rules were broken, the proof for each, and a short summary of who is at fault."</div></div>
+    <div class="line"><span class="tag t-cov">Covers</span><div class="body"><div class="chips"><span>Suggested Assessment</span><span>Actual Assessment</span><span>Evidence of Duty Breaches</span><span>Overall Summary</span></div></div></div>
+  </div>
+
+  <div class="scene">
+    <div class="sh"><span class="badge">8</span><span class="ttl">Negotiation &amp; Settlement</span><span class="time">0:30</span></div>
+    <div class="line"><span class="tag t-do">Do</span><div class="body">Open Negotiation & Settlement — show the duties & evidence carried through.</div></div>
+    <div class="line say"><span class="tag t-say">Say</span><div class="body">"The rules and the proof carry right into this step. So you have the facts ready when you settle."</div></div>
+    <div class="line"><span class="tag t-cov">Covers</span><div class="body"><div class="chips"><span>Duties & Evidence of Duty Breaches</span></div></div></div>
+  </div>
+
+  <div class="scene">
+    <div class="sh"><span class="badge">9</span><span class="ttl">Just in Time Training</span><span class="time">0:25</span></div>
+    <div class="line"><span class="tag t-do">Do</span><div class="body">Open Just in Time Training — show training for this claim's accident type.</div></div>
+    <div class="line say"><span class="tag t-say">Say</span><div class="body">"Right inside the claim, you get short training for this type of crash — help right when you need it."</div></div>
+    <div class="line"><span class="tag t-cov">Covers</span><div class="body"><div class="chips"><span>Accident-Type Training</span></div></div></div>
+  </div>
+
+  <div class="scene">
+    <div class="sh"><span class="badge">10</span><span class="ttl">Documents &amp; Correspondence</span><span class="time">0:25</span></div>
+    <div class="line"><span class="tag t-do">Do</span><div class="body">Open Documents & Correspondence — upload a file into a category.</div></div>
+    <div class="line say"><span class="tag t-say">Say</span><div class="body">"All your files and letters sit here, sorted by type. One place for everything."</div></div>
+    <div class="line"><span class="tag t-cov">Covers</span><div class="body"><div class="chips"><span>Upload Documents by Category</span></div></div></div>
+  </div>
+
+  <div class="scene">
+    <div class="sh"><span class="badge">11</span><span class="ttl">Claim Summary — the main page</span><span class="time">1:10</span></div>
+    <div class="line"><span class="tag t-do">Do</span><div class="body">Open Claim Summary. Point out: <b>Generate Claim Summary (AI)</b>, <b>Add Party</b>, <b>Add/Edit Statement</b>, <b>View/Edit Questions</b>, <b>Scene & Evidence</b>, <b>Arbitration</b>, <b>Add Settlement</b>, <b>PDF</b>.</div></div>
+    <div class="line say"><span class="tag t-say">Say</span><div class="body">"The Claim Summary brings it all together. One click writes a full report for you with AI.<span class="ai">AI</span> From here you add people, write and fix their statements, set the questions, open the scene and photos, handle arbitration, add a settlement, or save a PDF. It's all on one page."</div></div>
+    <div class="line"><span class="tag t-cov">Covers</span><div class="body"><div class="chips"><span>Generate Claim Summary (AI)</span><span>Add Party</span><span>Statement Summary</span><span>Review/Edit Statements</span><span>View/Edit Questions</span><span>Scene & Evidence</span><span>Arbitration</span><span>Add Settlement</span><span>PDF</span></div></div></div>
+  </div>
+
+  <div class="scene">
+    <div class="sh"><span class="badge">12</span><span class="ttl">Scene Investigator — Map &amp; Street View</span><span class="time">0:40</span></div>
+    <div class="line"><span class="tag t-do">Do</span><div class="body">Open the <b>Scene Investigator</b> — <b>Map View</b> and <b>Street View</b>. Drop in vehicles and signals; build a scene.</div></div>
+    <div class="line say"><span class="tag t-say">Say</span><div class="body">"The Scene Investigator builds the crash on a real map.<span class="ext">EXT Maps + Weather</span> You drop in cars and traffic lights — in map view or street view — to show what happened. This really helps the investigation."</div></div>
+    <div class="line"><span class="tag t-cov">Covers</span><div class="body"><div class="chips"><span>Scene Investigator (Map View)</span><span>Street View</span><span>Objects Rendering</span><span>Create Scenes</span></div></div></div>
+  </div>
+
+  <div class="scene">
+    <div class="sh"><span class="badge">13</span><span class="ttl">Send the phone link to the other driver</span><span class="time">0:45</span></div>
+    <div class="line"><span class="tag t-do">Do</span><div class="body">From Claim Summary → <b>Investigator Created – Needs Assigned</b> → set it up (Steps 1–5, questions) → <b>Send Assignment</b> (email) → <b>Send Text Message</b> (SMS link).</div></div>
+    <div class="line say"><span class="tag t-say">Say</span><div class="body">"When we need the other driver's side, we send them a link — by email and by text — to our phone app. That's what I'll show you next."</div></div>
+    <div class="line"><span class="tag t-cov">Covers</span><div class="body"><div class="chips"><span>Investigator Created – Needs Assigned</span><span>Send Assignment (email)</span><span>Send Text (app link)</span></div></div></div>
+  </div>
+
+  <!-- ===================== PART 2 — MOBILE ===================== -->
+  <div class="part mob">📱 PART 2 — Phone App (shown with screenshots)<span class="time">~4:30</span></div>
+
+  <div class="scene">
+    <div class="sh"><span class="badge">14</span><span class="ttl">Welcome &amp; Intro video</span><span class="time">0:30</span></div>
+    <div class="line"><span class="tag t-show">Show</span><div class="body">Welcome page → Introduction (short video, Skip).</div></div>
+    <div class="line say"><span class="tag t-say">Say</span><div class="body">"The driver taps the link and the app opens. They get a short welcome video on how it works — or they can skip it."</div></div>
+    <div class="line"><span class="tag t-cov">Covers</span><div class="body"><div class="chips"><span>Welcome Page</span><span>Introduction (Video)</span></div></div></div>
+  </div>
+
+  <div class="scene">
+    <div class="sh"><span class="badge">15</span><span class="ttl">Who are you? — Self or Proxy</span><span class="time">0:35</span></div>
+    <div class="line"><span class="tag t-show">Show</span><div class="body">Identity — <b>Self</b> (name, date of birth, ID type, ID number) and <b>Proxy</b> (someone helping them).</div></div>
+    <div class="line say"><span class="tag t-say">Say</span><div class="body">"First they show who they are — either themselves, or someone helping them, like a family member — with an ID."</div></div>
+    <div class="line"><span class="tag t-cov">Covers</span><div class="body"><div class="chips"><span>Self Identification</span><span>Proxy Identification</span></div></div></div>
+  </div>
+
+  <div class="scene">
+    <div class="sh"><span class="badge">16</span><span class="ttl">Step 1 — Accident scene &amp; details</span><span class="time">0:40</span></div>
+    <div class="line"><span class="tag t-show">Show</span><div class="body">Step 1 — <b>Accident Detail</b> (place, date, adjuster contact) + <b>Accident Scene</b> on the map.</div></div>
+    <div class="line say"><span class="tag t-say">Say</span><div class="body">"They look at the crash details and see the scene on a map — the same one the adjuster uses — and confirm it."</div></div>
+    <div class="line"><span class="tag t-cov">Covers</span><div class="body"><div class="chips"><span>Step 1 · Accident Scene (Map)</span><span>Accident Detail</span></div></div></div>
+  </div>
+
+  <div class="scene">
+    <div class="sh"><span class="badge">17</span><span class="ttl">Step 2 — Record their voice</span><span class="time">0:35</span></div>
+    <div class="line"><span class="tag t-show">Show</span><div class="body">Step 2 — tap the mic → recording (Pause / Restart / Done) while the scene shows.</div></div>
+    <div class="line say"><span class="tag t-say">Say</span><div class="body">"Then they just say what happened, in their own words, while looking at the scene. No forms to fill in."</div></div>
+    <div class="line"><span class="tag t-cov">Covers</span><div class="body"><div class="chips"><span>Step 2 · Record Audio</span></div></div></div>
+  </div>
+
+  <div class="scene">
+    <div class="sh"><span class="badge">18</span><span class="ttl">Step 3 — Voice turns into text</span><span class="time">0:30</span></div>
+    <div class="line"><span class="tag t-show">Show</span><div class="body">Step 3 — audio player + the <b>text from their voice</b>, tap to edit.</div></div>
+    <div class="line say"><span class="tag t-say">Say</span><div class="body">"The app turns their voice into text on its own.<span class="ai">AI</span> They can read it and fix anything before moving on."</div></div>
+    <div class="line"><span class="tag t-cov">Covers</span><div class="body"><div class="chips"><span>Step 3 · Audio → AI Transcript</span></div></div></div>
+  </div>
+
+  <div class="scene">
+    <div class="sh"><span class="badge">19</span><span class="ttl">Step 4 — Answer a few questions</span><span class="time">0:35</span></div>
+    <div class="line"><span class="tag t-show">Show</span><div class="body">Step 4 — Yes/No questions with details, plus <b>Tips</b> &amp; <b>Resources</b>.</div></div>
+    <div class="line say"><span class="tag t-say">Say</span><div class="body">"Next, a few simple questions about this crash — with Tips and Help if they get stuck. These are the exact questions the adjuster needs."</div></div>
+    <div class="line"><span class="tag t-cov">Covers</span><div class="body"><div class="chips"><span>Step 4 · Answer the Questions</span></div></div></div>
+  </div>
+
+  <div class="scene">
+    <div class="sh"><span class="badge">20</span><span class="ttl">Step 5 — Add photos</span><span class="time">0:25</span></div>
+    <div class="line"><span class="tag t-show">Show</span><div class="body">Step 5 — add photos/videos (up to 15MB each) + a note.</div></div>
+    <div class="line say"><span class="tag t-say">Say</span><div class="body">"They add photos or video from the crash, right from their phone."</div></div>
+    <div class="line"><span class="tag t-cov">Covers</span><div class="body"><div class="chips"><span>Step 5 · Attach Evidence</span></div></div></div>
+  </div>
+
+  <div class="scene">
+    <div class="sh"><span class="badge">21</span><span class="ttl">Step 6 — Check &amp; send</span><span class="time">0:25</span></div>
+    <div class="line"><span class="tag t-show">Show</span><div class="body">Step 6 — Review (Identity, Recording, Q&amp;A, Photos) → <b>Submit Claim</b>.</div></div>
+    <div class="line say"><span class="tag t-say">Say</span><div class="body">"One last look at everything, then they hit Submit. The whole thing takes only a few minutes."</div></div>
+    <div class="line"><span class="tag t-cov">Covers</span><div class="body"><div class="chips"><span>Step 6 · Review Submission</span><span>Submit Claim</span></div></div></div>
+  </div>
+
+  <div class="scene">
+    <div class="sh"><span class="badge">22</span><span class="ttl">Phone Dashboard — their claims</span><span class="time">0:20</span></div>
+    <div class="line"><span class="tag t-show">Show</span><div class="body">Phone Dashboard — claims list with status (Entered / Response Completed).</div></div>
+    <div class="line say"><span class="tag t-say">Say</span><div class="body">"They can check their claims any time. Here it shows the response is done."</div></div>
+    <div class="line"><span class="tag t-cov">Covers</span><div class="body"><div class="chips"><span>Dashboard · Claims List</span></div></div></div>
+  </div>
+
+  <div class="scene">
+    <div class="sh"><span class="badge">23</span><span class="ttl">Wrap up</span><span class="time">0:35</span></div>
+    <div class="line say"><span class="tag t-say">Say</span><div class="body">"Back on the web, the driver's words, scene, photos, and answers go straight into the claim — ready for the adjuster. Both sides of the story, in their own words, in one place. That's Claim Toolkit."</div></div>
+  </div>
+
+
+  <footer>Auto Liability Complete Demo Script · Claim Toolkit · Simple-English narration. Times are a guide — speak at your own pace.</footer>
+
+</div>
+</body>
+</html>
