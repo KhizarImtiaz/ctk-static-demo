@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Claim Toolkit — DB Schema &amp; Data Flow</title>
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; color:#1e293b; background:#f1f5f9; line-height:1.5; }
+  .wrap { max-width:1120px; margin:0 auto; padding:0 20px 80px; }
+  header { background:linear-gradient(135deg,#1a1a2e,#16213e 55%,#0f3460); color:#fff; padding:46px 20px 40px; text-align:center; }
+  header .kicker { font-size:12px; letter-spacing:3px; text-transform:uppercase; color:#60a5fa; font-weight:700; margin-bottom:10px; }
+  header h1 { font-size:31px; font-weight:800; margin-bottom:8px; }
+  header p { color:#cbd5e1; font-size:14.5px; max-width:800px; margin:0 auto; }
+  .facts { display:flex; flex-wrap:wrap; justify-content:center; gap:12px; margin:-26px auto 0; max-width:1000px; padding:0 20px; }
+  .fact { background:#fff; border-radius:12px; padding:14px 16px; text-align:center; box-shadow:0 10px 26px rgba(15,23,42,.12); flex:1; min-width:110px; }
+  .fact .num { font-size:19px; font-weight:800; color:#0f3460; } .fact .lbl { font-size:10px; color:#64748b; text-transform:uppercase; letter-spacing:.5px; margin-top:3px; }
+
+  nav.toc { background:#fff; border-radius:12px; padding:12px 16px; box-shadow:0 4px 14px rgba(15,23,42,.06); margin-top:26px; display:flex; flex-wrap:wrap; gap:7px; }
+  nav.toc a { font-size:12px; color:#0f3460; text-decoration:none; background:#eef4fb; padding:5px 10px; border-radius:7px; font-weight:600; }
+  nav.toc a:hover { background:#dbeafe; }
+
+  section { margin-top:34px; scroll-margin-top:14px; }
+  .st { font-size:13px; letter-spacing:1.5px; text-transform:uppercase; color:#0f3460; font-weight:700; margin-bottom:13px; display:flex; align-items:center; gap:10px; }
+  .st::before { content:''; width:24px; height:3px; background:#0f3460; border-radius:2px; }
+  .card { background:#fff; border-radius:14px; padding:18px 22px; box-shadow:0 4px 14px rgba(15,23,42,.06); margin-bottom:14px; }
+  .card p { color:#475569; font-size:14px; margin-bottom:8px; } .card p b { color:#0f172a; }
+  table { width:100%; border-collapse:collapse; font-size:13px; margin-top:4px; }
+  th { text-align:left; background:#f8fafc; color:#334155; padding:8px 10px; font-size:11px; text-transform:uppercase; letter-spacing:.4px; border-bottom:2px solid #e2e8f0; }
+  td { padding:7px 10px; border-bottom:1px solid #eef2f7; color:#475569; vertical-align:top; }
+  td:first-child { font-weight:600; color:#0f172a; }
+  code { font-family:'SF Mono',Consolas,monospace; font-size:11.5px; background:#eef2f7; padding:1px 5px; border-radius:4px; color:#0f3460; }
+  .op { font-size:10px; font-weight:800; padding:1px 6px; border-radius:4px; margin-right:3px; }
+  .r { background:#dbeafe; color:#1d4ed8; } .w { background:#dcfce7; color:#15803d; } .rw { background:#fef3c7; color:#b45309; }
+
+  .app { border-radius:14px; box-shadow:0 4px 14px rgba(15,23,42,.06); margin-bottom:14px; overflow:hidden; }
+  .app .ah { padding:12px 20px; color:#fff; display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+  .app .ah .nm { font-size:16px; font-weight:800; } .app .ah .tech { font-size:11.5px; opacity:.85; }
+  .app .ah .db { margin-left:auto; font-size:11px; font-weight:700; background:rgba(255,255,255,.2); padding:2px 9px; border-radius:12px; }
+  .app .ab { background:#fff; padding:14px 20px; }
+  .app .role { font-size:13.5px; color:#475569; margin-bottom:8px; } .app .role b { color:#0f172a; }
+  .c-net { background:linear-gradient(135deg,#0f3460,#1d4ed8); } .c-next { background:linear-gradient(135deg,#0369a1,#0891b2); }
+  .c-asp { background:linear-gradient(135deg,#78350f,#b45309); } .c-rn { background:linear-gradient(135deg,#0a7b47,#16a34a); }
+  .c-py { background:linear-gradient(135deg,#6d28d9,#7c3aed); }
+
+  .fam { display:grid; grid-template-columns:repeat(auto-fill,minmax(320px,1fr)); gap:8px; }
+  .fam .f { background:#f8fafc; border:1px solid #eef2f7; border-radius:9px; padding:9px 12px; }
+  .fam .f .h { font-size:12.5px; font-weight:700; color:#0f172a; } .fam .f .h .cnt { color:#64748b; font-weight:600; font-size:11px; }
+  .fam .f .t { font-family:'SF Mono',Consolas,monospace; font-size:11px; color:#475569; margin-top:3px; }
+
+  .note { background:#eff6ff; border:1px solid #bfdbfe; border-radius:10px; padding:12px 16px; font-size:13px; color:#475569; margin-top:10px; }
+  .flag { background:#fff7ed; border:1px solid #fed7aa; border-radius:10px; padding:12px 16px; font-size:13px; color:#7c2d12; margin-top:10px; }
+  footer { text-align:center; margin-top:34px; color:#94a3b8; font-size:12px; }
+  @media (max-width:640px){ header h1{font-size:24px;} }
+  @media print { body{background:#fff;} .card,.app{box-shadow:none;border:1px solid #e2e8f0;page-break-inside:avoid;} nav.toc{display:none;} }
+</style>
+</head>
+<body>
+<header>
+  <div class="kicker">Claim Toolkit · Production</div>
+  <h1>Database Schema &amp; Data Flow</h1>
+  <p>How 8 applications read and write across a central SQL Server DB + per-customer replicas (+ Redis, Postgres, S3, FAISS). Everything ties together through <code>ToolkitID</code>. Built from the prod dumps (01 Jul 2026) and a code scan of every app.</p>
+</header>
+<div class="facts">
+  <div class="fact"><div class="num">2</div><div class="lbl">SQL Server DBs</div></div>
+  <div class="fact"><div class="num">282</div><div class="lbl">United tables</div></div>
+  <div class="fact"><div class="num">201</div><div class="lbl">Shared tables</div></div>
+  <div class="fact"><div class="num">8</div><div class="lbl">Applications</div></div>
+  <div class="fact"><div class="num">ToolkitID</div><div class="lbl">Master key</div></div>
+  <div class="fact"><div class="num">6 store types</div><div class="lbl">SQL·Redis·PG·S3·FAISS·OCR</div></div>
+</div>
+<div class="wrap">
+
+  <nav class="toc">
+    <a href="#overview">Overview</a>
+    <a href="#diagram">Architecture</a>
+    <a href="#entities">Complete Entity Map</a>
+    <a href="#deployment">Deployment &amp; Data Split</a>
+    <a href="#united">United DB</a>
+    <a href="#shared">Shared DB</a>
+    <a href="#apps">App-by-App Flow</a>
+    <a href="#hot">Hot-Table Matrix</a>
+    <a href="#stores">Other Stores</a>
+    <a href="#insights">Key Insights</a>
+  </nav>
+
+  <!-- OVERVIEW -->
+  <section id="overview">
+    <div class="st">Overview — the data landscape</div>
+    <div class="card">
+      <p><b>Two SQL Server databases:</b></p>
+      <table>
+        <thead><tr><th>Database</th><th>Role</th><th>Holds</th></tr></thead>
+        <tbody>
+          <tr><td><code>claimtoolkit_united</code> (per-customer, 282 tables)</td><td>The customer's live claim data</td><td>Claims, parties, facts, assessment, investigation, audit, checklist, Ask CTK prompts, auth</td></tr>
+          <tr><td><code>claimtoolkit</code> (shared/central, 201 tables)</td><td>Cross-customer reference &amp; platform</td><td>Compliance (state-law) content, Total Loss rules, company registry &amp; billing, CTK products/config</td></tr>
+        </tbody>
+      </table>
+      <p style="margin-top:10px;"><b>Plus four non-SQL stores:</b> <code>Redis</code> (login session context + cached lookups — used by the <b>web backend and the mobile API</b>), <code>PostgreSQL</code> (AI apps — chat, memory, feedback), <code>AWS S3</code> (scene images, evidence, identity, transcripts, PDFs), and a local <code>FAISS</code> vector index (compliance search). <code>AWS Textract</code> provides identity-document OCR.</p>
+      <p><b>Multi-tenant — one central DB + N per-customer replicas:</b> the .NET APIs connect to the master <code>Claimtoolkit</code> DB, look up the company's <code>DatabaseName</code>, format the <code>TenantDbTemplate</code> (<code>{db}</code> placeholder), then work against <b>that customer's own DB</b>. <code>claimtoolkit_united</code> is just <b>one</b> customer replica — <code>elcl</code>, <code>united-uat</code>, etc. each have an identical 282-table copy. <b><code>ToolkitID</code> is the master claim key</b> stitching every table together; <code>ClaimID</code>, <code>AutoPartyID</code>, <code>AutoInvestigatorID</code>, <code>AssessmentID</code> are the secondary joins.</p>
+    </div>
+  </section>
+
+  <!-- DIAGRAM -->
+  <section id="diagram">
+    <div class="st">End-to-end architecture</div>
+    <div class="card" style="padding:14px;">
+      <svg viewBox="0 0 1080 470" xmlns="http://www.w3.org/2000/svg" font-family="-apple-system,'Segoe UI',sans-serif" role="img" aria-label="CTK apps and data stores">
+        <defs><marker id="a" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto"><polygon points="0 0,9 3.5,0 7" fill="#94a3b8"/></marker></defs>
+        <rect width="1080" height="470" fill="#fbfdff"/>
+        <text x="24" y="26" font-size="12" font-weight="700" fill="#475569">APPLICATIONS</text>
+        <!-- app boxes -->
+        <g font-size="10.5">
+          <rect x="24" y="36" width="150" height="46" rx="8" fill="#eff6ff" stroke="#1d4ed8"/><text x="34" y="55" fill="#1e3a8a">Auto Liability</text><text x="34" y="70" fill="#64748b">Next.js + .NET</text>
+          <rect x="186" y="36" width="140" height="46" rx="8" fill="#fef7ed" stroke="#b45309"/><text x="196" y="55" fill="#7c2d12">Legacy ASP</text><text x="196" y="70" fill="#a16207">classic ASP</text>
+          <rect x="338" y="36" width="160" height="46" rx="8" fill="#ecfeff" stroke="#0891b2"/><text x="348" y="55" fill="#155e75">Scene Investigator</text><text x="348" y="70" fill="#64748b">Next.js + .NET</text>
+          <rect x="510" y="36" width="160" height="46" rx="8" fill="#f0fdf4" stroke="#16a34a"/><text x="520" y="55" fill="#14532d">Mobile</text><text x="520" y="70" fill="#64748b">RN + .NET API</text>
+          <rect x="682" y="36" width="170" height="46" rx="8" fill="#faf5ff" stroke="#7c3aed"/><text x="692" y="55" fill="#5b21b6">ctk-mcp-nls (AI chat)</text><text x="692" y="70" fill="#64748b">FastAPI + Gemini</text>
+          <rect x="864" y="36" width="190" height="46" rx="8" fill="#faf5ff" stroke="#7c3aed"/><text x="874" y="55" fill="#5b21b6">AI-CTK-NLP (compliance)</text><text x="874" y="70" fill="#64748b">FastAPI + FAISS</text>
+        </g>
+        <!-- to data layer -->
+        <g stroke="#94a3b8" stroke-width="1.4">
+          <line x1="99" y1="82" x2="360" y2="150" marker-end="url(#a)"/>
+          <line x1="256" y1="82" x2="380" y2="150" marker-end="url(#a)"/>
+          <line x1="418" y1="82" x2="430" y2="150" marker-end="url(#a)"/>
+          <line x1="590" y1="82" x2="520" y2="150" marker-end="url(#a)"/>
+          <line x1="767" y1="82" x2="600" y2="150" marker-end="url(#a)"/>
+        </g>
+        <!-- data / API layer -->
+        <rect x="24" y="152" width="700" height="60" rx="10" fill="#0f172a"/>
+        <text x="40" y="176" font-size="12" font-weight="700" fill="#60a5fa">.NET DATA APIs (multi-tenant)</text>
+        <text x="40" y="196" font-size="11" fill="#e2e8f0">Auto Liability API · Scene Sim API · Mobile API · legacy ASP direct SQL · resolve company connection</text>
+        <!-- NLP direct/CSV -->
+        <rect x="740" y="152" width="314" height="60" rx="10" fill="#312e81"/>
+        <text x="756" y="176" font-size="12" font-weight="700" fill="#c7d2fe">AI DATA PATHS</text>
+        <text x="756" y="196" font-size="10.5" fill="#e0e7ff">mcp-nls → REST API · NLP → CSV→FAISS + reads shared DB* </text>
+
+        <line x1="374" y1="212" x2="300" y2="270" stroke="#94a3b8" stroke-width="1.4" marker-end="url(#a)"/>
+        <line x1="470" y1="212" x2="560" y2="270" stroke="#94a3b8" stroke-width="1.4" marker-end="url(#a)"/>
+        <line x1="600" y1="212" x2="720" y2="270" stroke="#94a3b8" stroke-width="1.4" marker-end="url(#a)"/>
+        <line x1="900" y1="212" x2="880" y2="270" stroke="#94a3b8" stroke-width="1.4" marker-end="url(#a)"/>
+        <line x1="820" y1="212" x2="620" y2="270" stroke="#94a3b8" stroke-width="1.4" marker-end="url(#a)"/>
+
+        <!-- stores -->
+        <text x="24" y="262" font-size="12" font-weight="700" fill="#475569">DATA STORES</text>
+        <rect x="24" y="272" width="250" height="70" rx="10" fill="#eff6ff" stroke="#1d4ed8"/><text x="38" y="296" font-size="12" font-weight="700" fill="#1e3a8a">claimtoolkit_united</text><text x="38" y="314" font-size="10.5" fill="#475569">Claim · Party · Facts · Assessment</text><text x="38" y="330" font-size="10.5" fill="#475569">Investigator · Audit · Checklist · AskCtk</text>
+        <rect x="288" y="272" width="240" height="70" rx="10" fill="#eff6ff" stroke="#3b82f6" stroke-dasharray="5 4"/><text x="302" y="296" font-size="12" font-weight="700" fill="#1e3a8a">claimtoolkit (shared)</text><text x="302" y="314" font-size="10.5" fill="#475569">Compliance DB* · Total Loss</text><text x="302" y="330" font-size="10.5" fill="#475569">Company/Billing · CTK config</text>
+        <rect x="542" y="272" width="180" height="70" rx="10" fill="#f0fdf4" stroke="#16a34a"/><text x="556" y="296" font-size="12" font-weight="700" fill="#14532d">AWS S3</text><text x="556" y="314" font-size="10.5" fill="#475569">Scenes · Evidence · Identity</text><text x="556" y="330" font-size="10.5" fill="#475569">Transcripts · PDF reports</text>
+        <rect x="736" y="272" width="150" height="70" rx="10" fill="#faf5ff" stroke="#7c3aed"/><text x="750" y="296" font-size="12" font-weight="700" fill="#5b21b6">PostgreSQL</text><text x="750" y="314" font-size="10.5" fill="#475569">chat · threads · memory</text><text x="750" y="330" font-size="10.5" fill="#475569">feedback · latency</text>
+        <rect x="900" y="272" width="154" height="70" rx="10" fill="#faf5ff" stroke="#7c3aed"/><text x="914" y="296" font-size="12" font-weight="700" fill="#5b21b6">FAISS + pgvector</text><text x="914" y="314" font-size="10.5" fill="#475569">compliance vectors</text><text x="914" y="330" font-size="10.5" fill="#475569">LTM embeddings</text>
+
+        <text x="24" y="380" font-size="11" fill="#64748b">Also: Redis (login context + lookup cache — web backend &amp; mobile API) · AWS Textract (ID OCR) · Google Maps + XWeather (scene) · Gemini / Ollama (LLMs) · SQL Agent (audit jobs)</text>
+        <text x="24" y="400" font-size="11" fill="#0f3460" font-weight="600">Everything in the SQL DBs joins on ToolkitID → the single claim identity.</text>
+      </svg>
+    </div>
+  </section>
+
+  <!-- COMPLETE ENTITY MAP -->
+  <section id="entities">
+    <div class="st">Complete architecture — every entity &amp; what data lands in it</div>
+    <div class="card" style="padding:14px;">
+      <svg viewBox="0 0 1080 560" xmlns="http://www.w3.org/2000/svg" font-family="-apple-system,'Segoe UI',sans-serif" role="img" aria-label="All CTK entities and the data that flows into them">
+        <defs><marker id="e" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto"><polygon points="0 0,9 3.5,0 7" fill="#94a3b8"/></marker></defs>
+        <rect width="1080" height="560" fill="#fbfdff"/>
+
+        <!-- PRODUCERS -->
+        <text x="20" y="24" font-size="12" font-weight="700" fill="#475569">PRODUCERS (apps)</text>
+        <g font-size="10.5">
+          <rect x="20" y="34" width="196" height="40" rx="8" fill="#eff6ff" stroke="#1d4ed8"/><text x="30" y="52" fill="#1e3a8a" font-weight="700">Auto Liability (Next.js+.NET)</text><text x="30" y="67" fill="#64748b">claim · party · facts · assessment</text>
+          <rect x="20" y="82" width="196" height="40" rx="8" fill="#fef7ed" stroke="#b45309"/><text x="30" y="100" fill="#7c2d12" font-weight="700">Legacy ASP</text><text x="30" y="115" fill="#a16207">claim · assessment · compliance · audit</text>
+          <rect x="20" y="130" width="196" height="40" rx="8" fill="#ecfeff" stroke="#0891b2"/><text x="30" y="148" fill="#155e75" font-weight="700">Scene Investigator (Next+.NET)</text><text x="30" y="163" fill="#64748b">scene diagram · markers · map</text>
+          <rect x="20" y="178" width="196" height="40" rx="8" fill="#f0fdf4" stroke="#16a34a"/><text x="30" y="196" fill="#14532d" font-weight="700">Mobile (RN + .NET API)</text><text x="30" y="211" fill="#64748b">identity · answers · evidence · files</text>
+          <rect x="20" y="226" width="196" height="40" rx="8" fill="#faf5ff" stroke="#7c3aed"/><text x="30" y="244" fill="#5b21b6" font-weight="700">ctk-mcp-nls (AI chat)</text><text x="30" y="259" fill="#64748b">chat · memory · prompt resolve</text>
+          <rect x="20" y="274" width="196" height="40" rx="8" fill="#faf5ff" stroke="#7c3aed"/><text x="30" y="292" fill="#5b21b6" font-weight="700">AI-CTK-NLP (compliance)</text><text x="30" y="307" fill="#64748b">DB* export · feedback · latency</text>
+        </g>
+
+        <!-- ROUTING -->
+        <rect x="250" y="120" width="150" height="110" rx="10" fill="#0f172a"/>
+        <text x="266" y="150" font-size="11.5" font-weight="700" fill="#60a5fa">TENANT ROUTER</text>
+        <text x="266" y="170" font-size="10" fill="#e2e8f0">master Claimtoolkit</text>
+        <text x="266" y="185" font-size="10" fill="#e2e8f0">→ DatabaseName</text>
+        <text x="266" y="200" font-size="10" fill="#e2e8f0">→ TenantDbTemplate</text>
+        <text x="266" y="218" font-size="10" fill="#93c5fd">picks the customer DB</text>
+
+        <!-- ENTITIES (right) -->
+        <text x="440" y="24" font-size="12" font-weight="700" fill="#475569">ENTITIES (where data is stored)</text>
+
+        <!-- SQL persistent -->
+        <rect x="440" y="34" width="300" height="86" rx="10" fill="#eff6ff" stroke="#1d4ed8"/>
+        <text x="452" y="54" font-size="12" font-weight="700" fill="#1e3a8a">claimtoolkit_<tspan font-style="italic">{customer}</tspan> · per-customer SQL</text>
+        <text x="452" y="72" font-size="10" fill="#475569">Claim · AutoParty · Facts · Assessment · Disposition</text>
+        <text x="452" y="87" font-size="10" fill="#475569">AutoInvestigator+Scene · AutoValues · Checklist · Files</text>
+        <text x="452" y="102" font-size="10" fill="#475569">Audit (145 tbl) · AskCtk_Prompt · Spooky auth · Docs</text>
+        <text x="452" y="115" font-size="9.5" fill="#1d4ed8" font-weight="600">the customer's live claim + audit data · 282 tables</text>
+
+        <rect x="440" y="128" width="300" height="72" rx="10" fill="#eff6ff" stroke="#3b82f6" stroke-dasharray="5 4"/>
+        <text x="452" y="148" font-size="12" font-weight="700" fill="#1e3a8a">Claimtoolkit · central shared SQL</text>
+        <text x="452" y="166" font-size="10" fill="#475569">Compliance content DB* (68) + Compliance* (9)</text>
+        <text x="452" y="181" font-size="10" fill="#475569">Total Loss (34) · Company/Billing · CTK config · Audit config (5)</text>
+        <text x="452" y="194" font-size="9.5" fill="#3b82f6" font-weight="600">cross-customer reference · 201 tables</text>
+
+        <!-- cache -->
+        <rect x="440" y="208" width="146" height="66" rx="10" fill="#fef2f2" stroke="#dc2626"/>
+        <text x="452" y="228" font-size="12" font-weight="700" fill="#991b1b">Redis (cache)</text>
+        <text x="452" y="245" font-size="9.5" fill="#475569">login UserContext</text>
+        <text x="452" y="259" font-size="9.5" fill="#475569">lookup cache · 10-min TTL</text>
+        <text x="452" y="271" font-size="9" fill="#dc2626">backend + mobile API</text>
+
+        <!-- S3 -->
+        <rect x="594" y="208" width="146" height="66" rx="10" fill="#f0fdf4" stroke="#16a34a"/>
+        <text x="606" y="228" font-size="12" font-weight="700" fill="#14532d">AWS S3 (blobs)</text>
+        <text x="606" y="245" font-size="9.5" fill="#475569">scenes · evidence · ID</text>
+        <text x="606" y="259" font-size="9.5" fill="#475569">transcripts · PDF reports</text>
+        <text x="606" y="271" font-size="9" fill="#16a34a">Scene + Mobile API</text>
+
+        <!-- Postgres -->
+        <rect x="748" y="34" width="312" height="86" rx="10" fill="#faf5ff" stroke="#7c3aed"/>
+        <text x="760" y="54" font-size="12" font-weight="700" fill="#5b21b6">PostgreSQL (AI)</text>
+        <text x="760" y="72" font-size="10" fill="#475569">mcp-nls: ctk_users · ctk_threads · ctk_chat_messages</text>
+        <text x="760" y="87" font-size="10" fill="#475569">+ pgvector LTM store (long-term memory)</text>
+        <text x="760" y="102" font-size="10" fill="#475569">NLP: feedback_ctk · response_times</text>
+        <text x="760" y="115" font-size="9.5" fill="#7c3aed" font-weight="600">AI chat state + memory + telemetry</text>
+
+        <!-- FAISS -->
+        <rect x="748" y="128" width="150" height="72" rx="10" fill="#faf5ff" stroke="#7c3aed"/>
+        <text x="760" y="148" font-size="12" font-weight="700" fill="#5b21b6">FAISS (local)</text>
+        <text x="760" y="166" font-size="9.5" fill="#475569">compliance vectors</text>
+        <text x="760" y="181" font-size="9.5" fill="#475569">bge-large embeddings</text>
+        <text x="760" y="194" font-size="9" fill="#7c3aed">built from DB* CSV</text>
+
+        <!-- Textract -->
+        <rect x="906" y="128" width="154" height="72" rx="10" fill="#fffbeb" stroke="#d97706"/>
+        <text x="918" y="148" font-size="12" font-weight="700" fill="#92400e">AWS Textract</text>
+        <text x="918" y="166" font-size="9.5" fill="#475569">identity-doc OCR</text>
+        <text x="918" y="181" font-size="9.5" fill="#475569">(transient → S3 Identity)</text>
+        <text x="918" y="194" font-size="9" fill="#d97706">Mobile API only</text>
+
+        <!-- arrows producers -> router -->
+        <g stroke="#94a3b8" stroke-width="1.3">
+          <line x1="216" y1="54" x2="250" y2="150" marker-end="url(#e)"/>
+          <line x1="216" y1="102" x2="250" y2="165" marker-end="url(#e)"/>
+          <line x1="216" y1="150" x2="250" y2="175" marker-end="url(#e)"/>
+          <line x1="216" y1="198" x2="250" y2="190" marker-end="url(#e)"/>
+        </g>
+        <!-- router -> SQL entities -->
+        <g stroke="#1d4ed8" stroke-width="1.5">
+          <line x1="400" y1="150" x2="440" y2="86" marker-end="url(#e)"/>
+          <line x1="400" y1="175" x2="440" y2="160" marker-end="url(#e)"/>
+        </g>
+        <!-- producers -> redis / s3 / pg / faiss -->
+        <g stroke="#dc2626" stroke-width="1.2" stroke-dasharray="4 3">
+          <line x1="216" y1="60" x2="440" y2="230" marker-end="url(#e)"/>
+          <line x1="216" y1="205" x2="440" y2="245" marker-end="url(#e)"/>
+        </g>
+        <g stroke="#16a34a" stroke-width="1.2" stroke-dasharray="4 3">
+          <line x1="216" y1="150" x2="594" y2="235" marker-end="url(#e)"/>
+          <line x1="216" y1="210" x2="594" y2="250" marker-end="url(#e)"/>
+        </g>
+        <g stroke="#7c3aed" stroke-width="1.2" stroke-dasharray="4 3">
+          <line x1="216" y1="244" x2="748" y2="80" marker-end="url(#e)"/>
+          <line x1="216" y1="292" x2="748" y2="150" marker-end="url(#e)"/>
+        </g>
+        <g stroke="#d97706" stroke-width="1.2" stroke-dasharray="4 3">
+          <line x1="216" y1="196" x2="906" y2="150" marker-end="url(#e)"/>
+        </g>
+
+        <!-- legend -->
+        <text x="20" y="345" font-size="11" font-weight="700" fill="#475569">Read the table below for the exact data each entity receives.</text>
+        <line x1="20" y1="360" x2="60" y2="360" stroke="#1d4ed8" stroke-width="1.5"/><text x="66" y="364" font-size="10" fill="#64748b">SQL claim/reference (via tenant router)</text>
+        <line x1="300" y1="360" x2="340" y2="360" stroke="#dc2626" stroke-width="1.2" stroke-dasharray="4 3"/><text x="346" y="364" font-size="10" fill="#64748b">Redis cache</text>
+        <line x1="470" y1="360" x2="510" y2="360" stroke="#16a34a" stroke-width="1.2" stroke-dasharray="4 3"/><text x="516" y="364" font-size="10" fill="#64748b">S3 blobs</text>
+        <line x1="620" y1="360" x2="660" y2="360" stroke="#7c3aed" stroke-width="1.2" stroke-dasharray="4 3"/><text x="666" y="364" font-size="10" fill="#64748b">Postgres / FAISS (AI)</text>
+        <line x1="820" y1="360" x2="860" y2="360" stroke="#d97706" stroke-width="1.2" stroke-dasharray="4 3"/><text x="866" y="364" font-size="10" fill="#64748b">Textract OCR</text>
+      </svg>
+
+      <table style="margin-top:14px;">
+        <thead><tr><th>Entity</th><th>Kind</th><th>Data that lands in it</th><th>Written by</th><th>Read by</th></tr></thead>
+        <tbody>
+          <tr><td><code>claimtoolkit_{customer}</code></td><td>SQL · per-customer</td><td>Claim, parties, facts, statements, assessment, disposition, investigation + scene metadata, question values, checklist, file metadata, <b>audit (145 tbl)</b>, Ask CTK prompts, auth</td><td>Auto-Lia backend, Legacy ASP, Scene API, Mobile API</td><td>every app; AI only via REST API</td></tr>
+          <tr><td><code>Claimtoolkit</code> (central)</td><td>SQL · shared</td><td><b>Compliance content</b> (68 DB* + 9 Compliance*), Total Loss (34), company registry/billing/contracts, CTK products/config, audit <b>config</b> (5), state-duty reference</td><td>Compliance/Audit admin (ASP), company onboarding</td><td>all apps (reference); AI-CTK-NLP reads DB* content</td></tr>
+          <tr><td><b>Redis</b></td><td>Cache (in-memory)</td><td>Login <code>UserContext</code> (baked at sign-in); cached <code>AutoLookUp</code>/investigator reads (10-min TTL)</td><td>Auto-Lia backend, Mobile API</td><td>same two APIs</td></tr>
+          <tr><td><b>AWS S3</b></td><td>Blob storage</td><td><code>CTK-Scene-Investigators/Scenes/</code> images; <code>Prod/{Evidence,Documents,Identity,Transcript,ClaimsReport}/</code></td><td>Scene API, Mobile API</td><td>backend + mobile (view), PDF generation</td></tr>
+          <tr><td><b>PostgreSQL</b></td><td>SQL (AI apps)</td><td>mcp-nls: <code>ctk_users</code>, <code>ctk_threads</code>, <code>ctk_chat_messages</code> + pgvector LTM · NLP: <code>feedback_ctk</code>, <code>response_times</code></td><td>ctk-mcp-nls, AI-CTK-NLP</td><td>same AI apps</td></tr>
+          <tr><td><b>FAISS</b></td><td>Vector index (disk)</td><td>Compliance search vectors (bge-large) built from a CSV export of the central DB's <code>DBStateSearch</code>/<code>DBSummary</code></td><td>AI-CTK-NLP (build step)</td><td>AI-CTK-NLP (query)</td></tr>
+          <tr><td><b>AWS Textract</b></td><td>OCR service (transient)</td><td>Reads an identity document image → structured text; result stored to S3 Identity path (nothing persisted in Textract)</td><td>Mobile API</td><td>Mobile API</td></tr>
+        </tbody>
+      </table>
+      <div class="note"><b>External services (not data stores):</b> Gemini &amp; Ollama/Gemma (LLM inference), OpenAI (embeddings for LTM), Google Maps + XWeather (scene backdrop &amp; weather), and SQL Agent jobs (overnight audit rollups). They process data but don't retain the claim record.</div>
+    </div>
+  </section>
+
+  <!-- DEPLOYMENT & DATA SPLIT -->
+  <section id="deployment">
+    <div class="st">Deployment model &amp; where each application's data lives</div>
+    <div class="card">
+      <p><b>One central database + one replica per customer.</b> There is no single "United database" — every customer/client gets its own copy of the same claim schema (the prod dump <code>claimtoolkit_united</code> is just United's copy; <code>elcl</code>, <code>united-uat</code>, … are siblings). The central <code>Claimtoolkit</code> DB is shared by all of them and holds the registry that tells the .NET APIs which customer DB to open.</p>
+      <div class="note" style="margin-bottom:12px;"><b>How a request finds its data:</b> <code>MainDb</code> (master/ACL) → look up the company's <code>DatabaseName</code> → format <code>TenantDbTemplate</code> (replace <code>{db}</code>) → open that customer's SQL DB. Scene API uses <code>ClaimtoolkitAutoConnection</code>; Mobile API uses <code>ClaimtoolkitConnection</code> → company connection.</p></div>
+
+      <p style="margin-top:6px;"><b>Are Compliance and Audit in the same DB as claims?</b> No — they sit on opposite sides of the split. Verified by counting <code>CREATE TABLE</code> statements in each prod dump:</p>
+      <table style="margin-top:6px;">
+        <thead><tr><th>Application area</th><th>Central <code>Claimtoolkit</code> (shared)</th><th>Per-customer <code>claimtoolkit_{customer}</code></th><th>Where the data actually lives</th></tr></thead>
+        <tbody>
+          <tr><td><b>Claims / Auto Liability</b></td><td>tmfsql core mirrored</td><td><b>282 tables</b> (full workflow)</td><td>Per-customer replica</td></tr>
+          <tr><td><b>Compliance</b></td><td><b>77 tables</b> — 68 <code>DB*</code> content + 9 <code>Compliance*</code></td><td>0</td><td><b>Central DB</b> (state law is the same for everyone → stored once)</td></tr>
+          <tr><td><b>Audit</b></td><td>only <b>5</b> <code>Audit*</code> <i>config</i> tables (<code>AuditCustomerConfig</code>, <code>AuditCompanyWidget</code>…)</td><td><b>145</b> <code>Audit*</code> tables (<code>AuditOD*</code>, rollups, CAR/Four/Five)</td><td><b>Per-customer replica</b> — config is central</td></tr>
+          <tr><td><b>Total Loss</b></td><td><b>34</b> <code>AutoTotalLoss*</code></td><td>0</td><td>Central DB (reference rules)</td></tr>
+        </tbody>
+      </table>
+      <div class="note"><b>Which app reads which:</b> <b>AI-CTK-NLP</b> points at the central DB (<code>DATABASE_NAME = "ClaimtoolKit"</code>) to pull compliance content; the <b>Legacy ASP compliance pages</b> read the same <code>DB*</code> tables; the <b>Auto Liability / Mobile / Scene APIs</b> read/write the per-customer replica. So Compliance content and the core claim tables coexist in the central DB, and Audit coexists with claims in each customer replica — the layout is <b>shared-vs-per-customer, not one-database-per-application</b>.</div>
+      <div class="flag">🔎 <b>For the AI-for-Audit work:</b> the RFP referred to a separate <code>ClaimToolkit_Audit</code> database, but the current prod schema has <b>no separate audit DB</b> — the 145 audit tables are embedded inside each customer replica alongside the claim tables. Carry this correction into that design.</div>
+    </div>
+  </section>
+
+  <!-- UNITED DB -->
+  <section id="united">
+    <div class="st">United DB (<code>claimtoolkit_united</code>) — 282 tables, 20 families</div>
+    <div class="card">
+      <div class="fam">
+        <div class="f"><div class="h">Claim core <span class="cnt">· tmfsql</span></div><div class="t">Claim (PK ToolkitID) · Assessment · Disposition · Company · Organization · ToolkitUser · Notes · statereference</div></div>
+        <div class="f"><div class="h">Parties <span class="cnt">· 8</span></div><div class="t">AutoParty · AutoPartyType · AutoPartyMovement · AutoPartyProxy · AutoQuestion(+Category)</div></div>
+        <div class="f"><div class="h">Facts / statements <span class="cnt">· 3</span></div><div class="t">Facts · Facts1 · FactsPolice</div></div>
+        <div class="f"><div class="h">Investigation <span class="cnt">· 38</span></div><div class="t">AutoInvestigator(+Status/Type/Files/FirstQuestion) · SceneDiagramID/Map/Markers · VehicleType · TextDisplay</div></div>
+        <div class="f"><div class="h">Assessment / calc <span class="cnt">· 8</span></div><div class="t">AssessCalc · AssessCalcMC · AssessCalcOther · AssessRatios · AutoValues · AutoValueCreate</div></div>
+        <div class="f"><div class="h">Case duty (evidence) <span class="cnt">· 8</span></div><div class="t">CaseRightofWay · CaseSpeed · CaseLookout · CaseAvoidance (+ *Evidence each)</div></div>
+        <div class="f"><div class="h">Checklist <span class="cnt">· 13</span></div><div class="t">AutoClaimCheckList(+Item/Approval/Category/Phase) · XAccidentType · XAutoQuestion · AutoClaimStatus*</div></div>
+        <div class="f"><div class="h">Accident-type ref <span class="cnt"></span></div><div class="t">AutoInvestigatorAccidentType · AutoInvestigatorType</div></div>
+        <div class="f"><div class="h">Settlement upload <span class="cnt">· 3</span></div><div class="t">AutoDispositionUpload(+Test/Tracking) — bulk/Excel feed</div></div>
+        <div class="f"><div class="h">Ask CTK prompts <span class="cnt">· 3 · NEW</span></div><div class="t">AskCtk_Prompt · AskCtk_Prompt_Type · AskCtk_Prompt_History</div></div>
+        <div class="f"><div class="h">Audit <span class="cnt">· 100+</span></div><div class="t">Audit* · AuditOD* (on-demand) · AuditOrg/Rep/Supervisor* · AuditFour/Five* · AuditCAR* · AuditAPI*</div></div>
+        <div class="f"><div class="h">Auth (Spooky) <span class="cnt">· 14</span></div><div class="t">Spooky_Users(+Roles/History) · Spooky_login_* · Spooky_Config</div></div>
+        <div class="f"><div class="h">Documents <span class="cnt">· 3</span></div><div class="t">ClaimDocuments · DocumentCategories</div></div>
+        <div class="f"><div class="h">Process workflow <span class="cnt">· 7</span></div><div class="t">TKProcess(+Type/Step/Decision/EmailTemplate)</div></div>
+        <div class="f"><div class="h">Usage / logging <span class="cnt">· 5</span></div><div class="t">CTKUse · CTKRepUse · CTK_APILogs · CTK_APISceneDiagram · IntegrationLog</div></div>
+        <div class="f"><div class="h">Reports <span class="cnt">· 8</span></div><div class="t">AutoReportOrg/Rep/State (+ByState/LastYear/Counts)</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SHARED DB -->
+  <section id="shared">
+    <div class="st">Shared DB (<code>claimtoolkit</code>) — 201 tables, 9 families</div>
+    <div class="card">
+      <div class="fam">
+        <div class="f"><div class="h">Compliance content (DB*) <span class="cnt">· 60+</span></div><div class="t">DBState · DBStateSearch · DBSummary · DBChart · DBCategory · DBCitation · DBSources · DBWebsites · DBStateDDTitle/Values · + *History/*HistoryCTK twins</div></div>
+        <div class="f"><div class="h">Compliance QA / links <span class="cnt"></span></div><div class="t">ComplianceBrokenChartLink* · ComplianceCanadaStatesBrokenLinksData · ComplianceExternalLinksInformation</div></div>
+        <div class="f"><div class="h">Total Loss <span class="cnt">· 30+</span></div><div class="t">AutoTotalLossAuthority · …State · …FeePlan · …Taxes · …StateSpecifics/URLs/Values · + History twins</div></div>
+        <div class="f"><div class="h">Company / billing <span class="cnt">· 20+</span></div><div class="t">Company · CompanyProducts · CompanyBilling · CompanyInvoices · CompanyContracts(+Provisions) · CompanyContacts</div></div>
+        <div class="f"><div class="h">CTK products / config <span class="cnt">· 10+</span></div><div class="t">CTKProducts · CTKSubProducts · CTK_users · CTK_company · CTK_states · CTKAutoCompanies · CTKInvestigations</div></div>
+        <div class="f"><div class="h">Auto reference <span class="cnt"></span></div><div class="t">AutoInvestigatorType · AutoLookUp · AutoQuestionAuthorityXRef · AutoLiabilityComparison</div></div>
+        <div class="f"><div class="h">State reference (duties) <span class="cnt">· 4</span></div><div class="t">StateReferenceRightofWay/Speed/Lookout/Avoidance</div></div>
+        <div class="f"><div class="h">Audit config <span class="cnt">· 5</span></div><div class="t">AuditCustomerConfig · AuditCompanyWidget · AuditCompanyFileManagement · AuditWidgetColumnPreference</div></div>
+        <div class="f"><div class="h">System / letters <span class="cnt"></span></div><div class="t">FormLetterSystem · MessagingSystem · SignatureHistory · HelpDesk · ActiveUsers</div></div>
+      </div>
+      <div class="note"><b>Shared with United (same shape):</b> the <code>tmfsql</code> core — <code>Claim</code>, <code>Assessment</code>, <code>Disposition</code>, <code>Company</code>, <code>statereference</code> — plus the <code>StateReference*</code> duty tables and a few Auto reference lookups.</div>
+    </div>
+  </section>
+
+  <!-- APPS -->
+  <section id="apps">
+    <div class="st">App-by-App — what data goes where</div>
+
+    <div class="app">
+      <div class="ah c-net"><span class="nm">ctk-autoliability-backend</span><span class="tech">.NET 9 · authoritative data layer</span><span class="db">United DB</span></div>
+      <div class="ab">
+        <div class="role"><b>Role:</b> the source of truth for the web claim workflow — every Auto Liability write goes through its repositories.</div>
+        <table>
+          <thead><tr><th>Table</th><th>Ops</th><th>Data</th></tr></thead>
+          <tbody>
+            <tr><td><code>Claim</code></td><td><span class="op r">R</span><span class="op w">I</span><span class="op rw">U</span></td><td>Claim #, insured, DOL, location, accident type, weather, police, counts</td></tr>
+            <tr><td><code>AutoParty</code></td><td><span class="op r">R</span><span class="op w">I</span><span class="op rw">U</span> D</td><td>Party name/type, contact, vehicle, driver links</td></tr>
+            <tr><td><code>Facts</code> / <code>FactsPolice</code></td><td><span class="op r">R</span><span class="op w">I</span><span class="op rw">U</span></td><td>Statements, duties (ROW/Lookout/Avoidance), police report</td></tr>
+            <tr><td><code>Assessment</code> (tmfsql) / <code>AssessCalc</code></td><td><span class="op r">R</span><span class="op rw">U</span></td><td>Duty breaches, negligence %, ROW determination, summary</td></tr>
+            <tr><td><code>Disposition</code></td><td><span class="op r">R</span><span class="op w">I</span><span class="op rw">U</span> D</td><td>Settlement amounts, negligence, coverage, payment/collection</td></tr>
+            <tr><td><code>AutoClaimCheckList</code>(+Item)</td><td><span class="op r">R</span><span class="op rw">U</span></td><td>Checklist item status, dispute/resolution notes</td></tr>
+            <tr><td><code>AutoInvestigator</code> / <code>…SceneDiagramID</code></td><td><span class="op r">R</span><span class="op w">I</span><span class="op rw">U</span></td><td>Assignment status, scene approval, diagram metadata</td></tr>
+            <tr><td><code>AskCtk_Prompt</code>*</td><td><span class="op r">R</span><span class="op w">I</span><span class="op rw">U</span></td><td>Prompt governance (types, versions, company overrides)</td></tr>
+            <tr><td><code>ClaimDocuments</code></td><td><span class="op r">R</span><span class="op w">I</span></td><td>Uploaded document metadata</td></tr>
+            <tr><td><code>Spooky_*</code>, <code>Company</code>, <code>StateReference*</code></td><td><span class="op r">R</span></td><td>Auth/roles, company email, state duty text</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="app">
+      <div class="ah c-next"><span class="nm">ctk-autoliability-frontend</span><span class="tech">Next.js 16</span><span class="db">via backend API</span></div>
+      <div class="ab"><div class="role"><b>Role:</b> UI only — <b>no direct DB access.</b> Every action calls the backend REST API (<code>/api/autolia/*</code>, <code>/api/facts/*</code>, <code>/api/disposition/*</code>, <code>/api/prompts/*</code>), which does the reads/writes above.</div></div>
+    </div>
+
+    <div class="app">
+      <div class="ah c-asp"><span class="nm">ctk-legacy-app-asp</span><span class="tech">Classic ASP (being replaced)</span><span class="db">United DB (direct)</span></div>
+      <div class="ab">
+        <div class="role"><b>Role:</b> the legacy claim app — writes <b>directly</b> to the same tables via ADODB/FrontPage, plus the compliance &amp; audit pages.</div>
+        <table>
+          <thead><tr><th>Table</th><th>Ops</th><th>Data</th></tr></thead>
+          <tbody>
+            <tr><td><code>Claim</code>, <code>AutoParty</code>, <code>Facts</code></td><td><span class="op r">R</span><span class="op w">I</span><span class="op rw">U</span> D</td><td>Same claim/party/statement data (ClaimSummary.asp, submission forms)</td></tr>
+            <tr><td><code>Assessment</code>, <code>Disposition</code></td><td><span class="op w">I</span><span class="op rw">U</span> D</td><td>Assessment editor, settlement pages</td></tr>
+            <tr><td><code>AutoInvestigator</code>, <code>AutoValues</code></td><td><span class="op r">R</span><span class="op rw">U</span></td><td>Investigator assignment + question values</td></tr>
+            <tr><td>compliance <code>DB*</code>, <code>AuditFile</code></td><td><span class="op r">R</span></td><td>Compliance charts (shared DB), audit routing</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="app">
+      <div class="ah c-next"><span class="nm">AI-ctk-accident-inv</span><span class="tech">Next.js + Leaflet (Scene Investigator UI)</span><span class="db">via Scene API</span></div>
+      <div class="ab"><div class="role"><b>Role:</b> the interactive scene map — <b>no direct DB.</b> Its API routes POST to the Scene API: <code>/FileStore/UploadWithMap</code>, <code>/Map/AddMap</code>, <code>/Party/AddParty</code>, approved-scene. Sends the Leaflet diagram (markers, paths, vehicles, notes) as FormData.</div></div>
+    </div>
+
+    <div class="app">
+      <div class="ah c-net"><span class="nm">AI-CTK-Scene-Simulation-API</span><span class="tech">.NET · CQRS</span><span class="db">United DB + S3</span></div>
+      <div class="ab">
+        <div class="role"><b>Role:</b> persists the accident scene diagram and its objects.</div>
+        <table>
+          <thead><tr><th>Table / store</th><th>Ops</th><th>Data</th></tr></thead>
+          <tbody>
+            <tr><td><code>AutoInvestigatorSceneDiagramID</code></td><td><span class="op r">R</span><span class="op w">I</span><span class="op rw">U</span></td><td>Diagram metadata: FileUrl, Version, VersionType (party/investigator), ToolkitID, AutoPartyID</td></tr>
+            <tr><td><code>AutoInvestigatorSceneDiagramMap</code></td><td><span class="op r">R</span><span class="op w">I</span></td><td>Map lat/lng, location, weather (JSON)</td></tr>
+            <tr><td><code>AutoInvestigatorSceneDiagramMarkers</code></td><td><span class="op r">R</span><span class="op w">I</span></td><td>Vehicles, signals, notes, measurements, rotations (JSON)</td></tr>
+            <tr><td><code>AutoParty</code> (+type/movement/vehicle)</td><td><span class="op r">R</span><span class="op rw">U</span></td><td>Party speed, movement, type, vehicle icon</td></tr>
+            <tr><td><b>AWS S3</b> <code>CTK-Scene-Investigators/Scenes/</code></td><td><span class="op w">I</span></td><td>Scene diagram images + map backgrounds</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="app">
+      <div class="ah c-rn"><span class="nm">AI-ctk-mobile-app</span><span class="tech">React Native 0.77 (claimant app)</span><span class="db">via Mobile API</span></div>
+      <div class="ab"><div class="role"><b>Role:</b> the party's phone app — <b>no direct DB.</b> Its services call the Mobile API: identity (<code>AddSelf/ProxyIdentification</code>, <code>IdentityOCR</code>), questions (<code>GetQuestions</code>/<code>SaveAnswers</code>), evidence (<code>UploadEvidencesFiles</code>), transcript (<code>UploadTranscriptFile</code>), submit (<code>CompleteFile</code>).</div></div>
+    </div>
+
+    <div class="app">
+      <div class="ah c-net"><span class="nm">AI-CTK-Mobile-API</span><span class="tech">.NET · CQRS · Redis · Textract</span><span class="db">United DB + S3</span></div>
+      <div class="ab">
+        <div class="role"><b>Role:</b> writes everything the claimant submits from the phone.</div>
+        <table>
+          <thead><tr><th>Table / store</th><th>Ops</th><th>Data</th></tr></thead>
+          <tbody>
+            <tr><td><code>AutoInvestigator</code></td><td><span class="op r">R</span><span class="op w">I</span><span class="op rw">U</span></td><td>IdentityType/Number, status, device, scene approval</td></tr>
+            <tr><td><code>AutoParty</code> / <code>AutoPartyProxy</code></td><td><span class="op r">R</span><span class="op rw">U</span></td><td>Self identity (PartyIdentityNumber) / proxy link</td></tr>
+            <tr><td><code>AutoValues</code></td><td><span class="op w">I</span><span class="op rw">U</span></td><td>Question answers (via <code>sp_AutoUpdateAutoValues</code>)</td></tr>
+            <tr><td><code>AutoInvestigatorFiles</code></td><td><span class="op w">I</span><span class="op rw">U</span> D</td><td>File metadata for evidence, transcript, identity, summary PDF</td></tr>
+            <tr><td><code>Facts</code> (via SP)</td><td><span class="op rw">U</span></td><td>Answer-derived facts</td></tr>
+            <tr><td><b>AWS S3</b> <code>Prod/{Evidence,Documents,Identity,Transcript,ClaimsReport}/</code></td><td><span class="op w">I</span></td><td>Evidence, docs, ID scans, audio, generated PDF</td></tr>
+            <tr><td><b>AWS Textract</b></td><td><span class="op r">R</span></td><td>Reads identity document (OCR) → S3 Identity path</td></tr>
+          </tbody>
+        </table>
+        <div class="note">Multi-tenant via <code>ClaimtoolkitConnection</code> (master) → company connection. Heavy use of stored procs (<code>sp_AutoInvestigatorAssignment</code>, <code>sp_AutoInvestigatorAutoValues</code>, <code>sp_AutoUpdateAutoValues</code>, <code>sp_SaveIdentification</code>) + Redis cache (10-min TTL).</div>
+      </div>
+    </div>
+
+    <div class="app">
+      <div class="ah c-py"><span class="nm">AI-CTK-NLP</span><span class="tech">FastAPI · FAISS · Ollama/Gemma (compliance search)</span><span class="db">Shared DB → CSV → FAISS · Postgres</span></div>
+      <div class="ab">
+        <table>
+          <thead><tr><th>Source / store</th><th>Ops</th><th>Data</th></tr></thead>
+          <tbody>
+            <tr><td>Shared DB <code>DBStateSearch</code>, <code>DBSummary</code></td><td><span class="op r">R</span></td><td>Compliance/state-law content → exported to CSV</td></tr>
+            <tr><td>CSV → <b>FAISS</b> (local <code>server-ctk-embeddings-local/</code>)</td><td><span class="op w">I</span><span class="op r">R</span></td><td>Vector index (BAAI bge-large) for semantic search</td></tr>
+            <tr><td><b>Postgres</b> <code>response_times</code></td><td><span class="op w">I</span></td><td>Search latency per query</td></tr>
+            <tr><td><b>Postgres</b> <code>feedback_ctk</code></td><td><span class="op w">I</span></td><td>User feedback on answer accuracy</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="app">
+      <div class="ah c-py"><span class="nm">ctk-mcp-nls</span><span class="tech">FastAPI · LangChain · Gemini (AI assistant / Ask CTK)</span><span class="db">via REST API · Postgres + pgvector</span></div>
+      <div class="ab">
+        <table>
+          <thead><tr><th>Source / store</th><th>Ops</th><th>Data</th></tr></thead>
+          <tbody>
+            <tr><td>Claim data — <b>via .NET REST API</b> (127+ tools)</td><td><span class="op r">R</span><span class="op w">I</span></td><td>Reads/writes claim, party, assessment, disposition through <code>/api/AutoLia/*</code> etc. (never direct DB)</td></tr>
+            <tr><td><code>AskCtk_Prompt</code>* — via <code>/api/prompts/resolve</code></td><td><span class="op r">R</span></td><td>Resolves the company/global prompt text (fallback to code defaults)</td></tr>
+            <tr><td><b>Postgres</b> <code>ctk_users</code>, <code>ctk_threads</code>, <code>ctk_chat_messages</code></td><td><span class="op w">I</span><span class="op r">R</span></td><td>Chat sessions + messages</td></tr>
+            <tr><td><b>pgvector</b> LTM store</td><td><span class="op w">I</span><span class="op r">R</span></td><td>Long-term memory facts (OpenAI embeddings)</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- HOT TABLE MATRIX -->
+  <section id="hot">
+    <div class="st">Hot-table matrix — who touches the key claim tables</div>
+    <div class="card">
+      <table>
+        <thead><tr><th>Table (DB)</th><th>Written by</th><th>Read by</th></tr></thead>
+        <tbody>
+          <tr><td><code>Claim</code> (united)</td><td>Auto-Lia backend, Legacy ASP</td><td>backend, ASP, mcp-nls (via API), Scene/Mobile API (context)</td></tr>
+          <tr><td><code>AutoParty</code> (united)</td><td>Auto-Lia backend, Legacy ASP, Scene API, Mobile API</td><td>all of the above</td></tr>
+          <tr><td><code>Facts</code> (united)</td><td>Auto-Lia backend, Legacy ASP, Mobile API (via SP)</td><td>backend, ASP, mcp-nls (via API)</td></tr>
+          <tr><td><code>Assessment</code> (tmfsql)</td><td>Auto-Lia backend, Legacy ASP</td><td>backend, ASP, mcp-nls (via API)</td></tr>
+          <tr><td><code>Disposition</code> (tmfsql)</td><td>Auto-Lia backend, Legacy ASP, (bulk: <code>AutoDispositionUpload</code>)</td><td>backend, ASP</td></tr>
+          <tr><td><code>AutoInvestigator</code> (united)</td><td>Auto-Lia backend, Mobile API, Scene API, ASP</td><td>all — the hub of the investigation</td></tr>
+          <tr><td><code>AutoValues</code> (united)</td><td>Mobile API (SP), ASP</td><td>backend, audit</td></tr>
+          <tr><td><code>AutoInvestigatorSceneDiagram*</code></td><td>Scene API</td><td>backend, Mobile app (view), PDF gen</td></tr>
+          <tr><td><code>AutoInvestigatorFiles</code></td><td>Mobile API</td><td>backend, PDF gen</td></tr>
+          <tr><td><code>AskCtk_Prompt*</code> (united)</td><td>Auto-Lia backend (admin)</td><td>mcp-nls (resolve)</td></tr>
+          <tr><td><code>DBStateSearch</code>/<code>DBSummary</code> (shared)</td><td>Legacy ASP / compliance admin</td><td>AI-CTK-NLP (→CSV→FAISS)</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- STORES -->
+  <section id="stores">
+    <div class="st">Data stored outside SQL Server</div>
+    <div class="card">
+      <table>
+        <thead><tr><th>Store</th><th>What</th><th>Owner app</th></tr></thead>
+        <tbody>
+          <tr><td><b>Redis</b> (in-memory cache)</td><td>Login <code>UserContext</code> baked at sign-in; cached <code>AutoLookUp</code>/investigator reads (10-min TTL)</td><td>ctk-autoliability-backend &amp; AI-CTK-Mobile-API</td></tr>
+          <tr><td><b>AWS S3</b> — <code>CTK-Scene-Investigators/Scenes/</code></td><td>Scene diagram images, map backgrounds</td><td>Scene API</td></tr>
+          <tr><td><b>AWS S3</b> — <code>Prod/Evidence · Documents · Identity · Transcript · ClaimsReport</code></td><td>Photos/video, docs, ID scans, audio, final PDF</td><td>Mobile API</td></tr>
+          <tr><td><b>AWS Textract</b></td><td>Identity-document OCR</td><td>Mobile API</td></tr>
+          <tr><td><b>PostgreSQL</b></td><td>ctk-mcp-nls: users/threads/messages + pgvector memory · AI-CTK-NLP: feedback_ctk, response_times</td><td>ctk-mcp-nls, AI-CTK-NLP</td></tr>
+          <tr><td><b>FAISS</b> (local disk)</td><td>Compliance search vector index (from the shared-DB CSV)</td><td>AI-CTK-NLP</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- INSIGHTS -->
+  <section id="insights">
+    <div class="st">Key insights</div>
+    <div class="card">
+      <p>1. <b><code>ToolkitID</code> is the spine.</b> Claim, parties, facts, assessment, investigation, scene, files, audit, disposition — all carry it. It's the join key for any cross-table or AI query.</p>
+      <p>2. <b>Two-database split:</b> <code>claimtoolkit_united</code> = the customer's live claim/investigation/audit data; <code>claimtoolkit</code> = shared compliance content, Total Loss, and company/billing. The <code>tmfsql</code> core (Claim/Assessment/Disposition/Company) exists in both.</p>
+      <p>3. <b>The .NET APIs are the write layer.</b> The Auto Liability, Scene, and Mobile APIs own the writes; the Next.js frontends and the RN app never touch the DB directly. The <b>legacy ASP still writes directly</b> — a migration risk to retire.</p>
+      <p>4. <b>The investigation family (<code>AutoInvestigator*</code>) is the hub</b> where web (assignment), scene (diagram), and mobile (identity/answers/files) converge — all keyed by <code>AutoInvestigatorID</code> + <code>ToolkitID</code>.</p>
+      <p>5. <b>AI never queries claim data directly.</b> ctk-mcp-nls reaches claims only through the .NET REST API + resolves prompts from <code>AskCtk_Prompt*</code>; AI-CTK-NLP reads compliance via a CSV export → FAISS. AI writes live only in Postgres/pgvector.</p>
+      <p>6. <b>Big files live in S3, not SQL</b> — scenes, evidence, ID scans, audio, PDFs. SQL holds only the metadata (<code>AutoInvestigatorFiles</code>, <code>…SceneDiagramID</code>).</p>
+      <div class="flag">🔎 Two things you asked about earlier: <b>MultiCar</b> lives in <code>Facts.MultiCar</code> + <code>Assessment.MultiCar/MultiCarNotes</code> (no "MultiVehicle"). <b>Canada</b> compliance links are tracked in the shared DB's <code>ComplianceCanadaStatesBrokenLinksData</code>, but the page content is still static (not in <code>DBSummary</code>).</div>
+    </div>
+  </section>
+
+  <footer>Claim Toolkit — DB Schema &amp; Data Flow · prod dumps 01 Jul 2026 (United 282 / Shared 201 tables) + code scan of 8 apps · ToolkitID ties it all together.</footer>
+</div>
+</body>
+</html>
