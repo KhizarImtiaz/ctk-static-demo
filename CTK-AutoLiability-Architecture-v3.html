@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Auto Liability — High-Level Architecture</title>
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:'Segoe UI',Arial,Helvetica,sans-serif; color:#222; background:#fff; line-height:1.4; padding:26px 22px 44px; }
+  .head { max-width:1200px; margin:0 auto 12px; }
+  h1 { font-size:22px; font-weight:700; color:#1a1a1a; }
+  .sub { font-size:12.5px; color:#6b6b6b; margin-top:3px; }
+  .legend { max-width:1200px; margin:10px auto 8px; display:flex; flex-wrap:wrap; gap:16px; font-size:12px; color:#555; }
+  .legend span { display:inline-flex; align-items:center; gap:7px; }
+  .sw { width:20px; height:13px; border-radius:2px; display:inline-block; }
+  .frame { max-width:1200px; margin:0 auto; border:1px solid #dcdcdc; border-radius:6px; overflow-x:auto; }
+  svg { display:block; width:100%; min-width:1040px; height:auto; }
+  .foot { max-width:1200px; margin:10px auto 0; font-size:11.5px; color:#8a8a8a; }
+  @media print { body{padding:0;} .frame{border:none;} }
+</style>
+</head>
+<body>
+  <div class="head">
+    <h1>Auto Liability — High-Level Architecture</h1>
+    <div class="sub">Read top-down: users &rarr; apps &rarr; access/session &rarr; services &rarr; data. The AI reads only through the API; everything joins on <b>ToolkitID</b>.</div>
+  </div>
+  <div class="legend">
+    <span><i class="sw" style="background:#f2f2f2;border:1px solid #b0b0b0"></i>Application</span>
+    <span><i class="sw" style="background:#e6e6e6;border:1px solid #8c8c8c"></i>Access / session</span>
+    <span><i class="sw" style="background:#d9d9d9;border:1px solid #8c8c8c"></i>Service / API</span>
+    <span><i class="sw" style="background:#fff;border:1px solid #8c8c8c"></i>Data store</span>
+    <span><i class="sw" style="background:#f7f7f7;border:1px solid #bbb"></i>External service</span>
+    <span><i class="sw" style="background:#fff;border:1px dashed #8c8c8c"></i>Legacy / direct write</span>
+  </div>
+
+  <div class="frame">
+  <svg viewBox="0 0 1200 900" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Auto Liability detailed architecture">
+    <defs><marker id="a" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 z" fill="#8c8c8c"/></marker></defs>
+    <style>
+      .lbl { font:700 11px 'Segoe UI'; fill:#7a7a7a; letter-spacing:1px; }
+      .app { fill:#f2f2f2; stroke:#b0b0b0; }
+      .acc { fill:#e6e6e6; stroke:#8c8c8c; }
+      .api { fill:#d9d9d9; stroke:#8c8c8c; }
+      .st  { fill:#fff;    stroke:#8c8c8c; }
+      .ext { fill:#f7f7f7; stroke:#bbbbbb; }
+      .fam { fill:#fafafa; stroke:#cfcfcf; }
+      .hdr { fill:#3a3a3a; }
+      .ht  { font:700 12px 'Segoe UI'; fill:#fff; }
+      .t   { font:600 12.5px 'Segoe UI'; fill:#1f1f1f; }
+      .t2  { font:600 12px 'Segoe UI'; fill:#1f1f1f; }
+      .s   { font:400 10.5px 'Segoe UI'; fill:#777; }
+      .ct  { font:600 10px Consolas,monospace; fill:#333; }
+      .ft  { font:700 10.5px 'Segoe UI'; fill:#3a3a3a; }
+      .cap { font:400 10.5px 'Segoe UI'; fill:#8a8a8a; }
+      .ln  { stroke:#8c8c8c; stroke-width:1.3; fill:none; }
+      .lnd { stroke:#8c8c8c; stroke-width:1.3; fill:none; stroke-dasharray:5 4; }
+    </style>
+
+    <!-- ================= USERS ================= -->
+    <text class="lbl" x="24" y="18">USERS</text>
+    <rect class="app" x="180" y="26" width="210" height="34" rx="4"/><text class="t" x="285" y="48" text-anchor="middle">Adjuster / Admin</text>
+    <rect class="app" x="560" y="26" width="210" height="34" rx="4"/><text class="t" x="665" y="48" text-anchor="middle">Claimant / Party</text>
+
+    <!-- ================= CLIENT APPS ================= -->
+    <text class="lbl" x="24" y="82">CLIENT APPS</text>
+    <!-- 6 boxes: x=24,220,416,612,808,1004  w=172  centers 110,306,502,698,894,1090 -->
+    <rect class="app" x="24"   y="92" width="172" height="66" rx="4"/><text class="t2" x="110"  y="120" text-anchor="middle">Auto Liability Web</text><text class="s" x="110"  y="138" text-anchor="middle">Next.js in ES Classic</text>
+    <rect class="app" x="220"  y="92" width="172" height="66" rx="4"/><text class="t2" x="306"  y="120" text-anchor="middle">Ask CTK Chat</text><text class="s" x="306"  y="138" text-anchor="middle">assistant widget</text>
+    <rect class="app" x="416"  y="92" width="172" height="66" rx="4"/><text class="t2" x="502"  y="120" text-anchor="middle">Prompt Governance</text><text class="s" x="502"  y="138" text-anchor="middle">admin</text>
+    <rect class="app" x="612"  y="92" width="172" height="66" rx="4"/><text class="t2" x="698"  y="120" text-anchor="middle">Mobile Investigator</text><text class="s" x="698"  y="138" text-anchor="middle">React Native</text>
+    <rect class="app" x="808"  y="92" width="172" height="66" rx="4"/><text class="t2" x="894"  y="120" text-anchor="middle">Scene Investigator</text><text class="s" x="894"  y="138" text-anchor="middle">Next.js + Leaflet</text>
+    <rect class="app" x="1004" y="92" width="172" height="66" rx="4" stroke-dasharray="5 4"/><text class="t2" x="1090" y="120" text-anchor="middle">Legacy ASP</text><text class="s" x="1090" y="138" text-anchor="middle">being retired</text>
+
+    <!-- users -> apps -->
+    <path class="ln" d="M250,60 L130,92" marker-end="url(#a)"/>
+    <path class="ln" d="M290,60 L306,92" marker-end="url(#a)"/>
+    <path class="ln" d="M320,60 L502,92" marker-end="url(#a)"/>
+    <path class="ln" d="M360,60 L880,92" marker-end="url(#a)"/>
+    <path class="ln" d="M665,60 L698,92" marker-end="url(#a)"/>
+
+    <!-- apps -> access -->
+    <path class="ln" d="M110,158 L110,192" marker-end="url(#a)"/>
+    <path class="ln" d="M306,158 L306,192" marker-end="url(#a)"/>
+    <path class="ln" d="M502,158 L502,192" marker-end="url(#a)"/>
+    <path class="ln" d="M698,158 L698,192" marker-end="url(#a)"/>
+    <path class="ln" d="M894,158 L894,192" marker-end="url(#a)"/>
+    <!-- legacy direct (dashed) -->
+    <path class="lnd" d="M1090,158 L1090,188" marker-end="url(#a)"/>
+    <text class="cap" x="1176" y="180" text-anchor="end">Legacy ASP writes directly to the Claim DB (bypasses API)</text>
+
+    <!-- ================= ACCESS & SESSION ================= -->
+    <text class="lbl" x="24" y="184">ACCESS &amp; SESSION</text>
+    <rect class="acc" x="24" y="192" width="956" height="60" rx="5"/>
+    <text class="t2" x="42" y="216">proxy.ts routes every request   ·   Spooky cookie &rarr; /sso-bootstrap &rarr; ctk_token (JWT, 24h)</text>
+    <text class="s"  x="42" y="238">JWT middleware &rarr; UserContext in Redis   ·   tenant CompanyId resolved server-side   ·   typed /login = username + password</text>
+
+    <!-- access -> services -->
+    <path class="ln" d="M110,252 L110,286" marker-end="url(#a)"/>
+    <path class="ln" d="M320,252 L320,286" marker-end="url(#a)"/>
+    <path class="ln" d="M520,252 L520,286" marker-end="url(#a)"/>
+    <path class="ln" d="M710,252 L710,286" marker-end="url(#a)"/>
+    <path class="ln" d="M890,252 L900,286" marker-end="url(#a)"/>
+
+    <!-- ================= SERVICES / API ================= -->
+    <text class="lbl" x="24" y="278">SERVICES / API   ·   .NET REST + AI   ·   JWT · per-tenant</text>
+    <!-- 5 boxes: x=24,220,416,612,808  w=196  centers 122,318,514,710,906 -->
+    <rect class="api" x="24"  y="286" width="196" height="66" rx="4"/><text class="t2" x="122" y="314" text-anchor="middle">Auto Liability API</text><text class="s" x="122" y="332" text-anchor="middle">.NET · authoritative</text>
+    <rect class="api" x="220" y="286" width="196" height="66" rx="4"/><text class="t2" x="318" y="314" text-anchor="middle">Auth Service</text><text class="s" x="318" y="332" text-anchor="middle">login · sso-login · secret</text>
+    <rect class="api" x="416" y="286" width="196" height="66" rx="4"/><text class="t2" x="514" y="310" text-anchor="middle">Ask CTK — MCP</text><text class="s" x="514" y="326" text-anchor="middle">FastMCP · LangGraph · Gemini</text>
+    <rect class="api" x="612" y="286" width="196" height="66" rx="4"/><text class="t2" x="710" y="314" text-anchor="middle">Mobile API</text><text class="s" x="710" y="332" text-anchor="middle">.NET</text>
+    <rect class="api" x="808" y="286" width="196" height="66" rx="4"/><text class="t2" x="906" y="314" text-anchor="middle">Scene API</text><text class="s" x="906" y="332" text-anchor="middle">.NET</text>
+
+    <!-- MCP reads via Auto Liability API (annotation, no crossing arrow) -->
+    <text class="cap" x="514" y="372" text-anchor="middle">Ask CTK reads claim data via the Auto Liability API</text>
+
+    <!-- services -> data (two clean verticals; details via the "used by" notes below) -->
+    <path class="ln" d="M300,352 L300,412" marker-end="url(#a)"/>
+    <path class="ln" d="M900,352 L900,412" marker-end="url(#a)"/>
+
+    <!-- ================= DATA STORES ================= -->
+    <text class="lbl" x="24" y="406">DATA STORES</text>
+
+    <!-- per-customer DB container -->
+    <rect class="st" x="24" y="414" width="712" height="360" rx="6" fill="#ececec"/>
+    <rect class="hdr" x="24" y="414" width="712" height="30" rx="6"/><rect class="hdr" x="24" y="430" width="712" height="14"/>
+    <text class="ht" x="38" y="434">SQL SERVER — Claim DB (one per customer)   ·   key: ToolkitID</text>
+
+    <!-- family boxes: 2 cols x=36 / 380 (w=336), 4 rows y=452,530,608,686 (h=72) -->
+    <!-- r1 -->
+    <rect class="fam" x="36"  y="452" width="336" height="72" rx="4"/><text class="ft" x="50" y="470">Claim core · tmfsql</text><text class="ct" x="50" y="490">Claim · Assessment · Disposition · Company</text><text class="ct" x="50" y="507">Organization · ToolkitUser · Notes · statereference</text>
+    <rect class="fam" x="380" y="452" width="336" height="72" rx="4"/><text class="ft" x="394" y="470">Parties</text><text class="ct" x="394" y="490">AutoParty · AutoPartyProxy · AutoPartyType</text><text class="ct" x="394" y="507">AutoPartyMovement · AutoQuestion</text>
+    <!-- r2 -->
+    <rect class="fam" x="36"  y="530" width="336" height="72" rx="4"/><text class="ft" x="50" y="548">Facts / statements</text><text class="ct" x="50" y="568">Facts · FactsPolice</text><text class="cap" x="50" y="585">mobile answers &amp; police report</text>
+    <rect class="fam" x="380" y="530" width="336" height="72" rx="4"/><text class="ft" x="394" y="548">Assessment &amp; calc</text><text class="ct" x="394" y="568">Assessment · AssessCalc · AssessCalcMC</text><text class="ct" x="394" y="585">AssessCalcOther · AutoValues</text>
+    <!-- r3 -->
+    <rect class="fam" x="36"  y="608" width="336" height="72" rx="4"/><text class="ft" x="50" y="626">Case duty · evidence</text><text class="ct" x="50" y="646">CaseRightofWay · CaseSpeed · CaseLookout</text><text class="ct" x="50" y="663">CaseAvoidance  (+ *Evidence)</text>
+    <rect class="fam" x="380" y="608" width="336" height="72" rx="4"/><text class="ft" x="394" y="626">Investigation</text><text class="ct" x="394" y="646">AutoInvestigator · AutoInvestigatorFiles</text><text class="ct" x="394" y="663">SceneDiagram  ID / Map / Markers</text>
+    <!-- r4 -->
+    <rect class="fam" x="36"  y="686" width="336" height="72" rx="4"/><text class="ft" x="50" y="704">Checklist · Docs · Auth</text><text class="ct" x="50" y="724">AutoClaimCheckList · ClaimDocuments</text><text class="ct" x="50" y="741">DocumentCategories · Spooky_Users (+Roles)</text>
+    <rect class="fam" x="380" y="686" width="336" height="72" rx="4"/><text class="ft" x="394" y="704">Reference &amp; reports</text><text class="ct" x="394" y="724">AutoLookUp · AutoInvestigatorType / AccidentType</text><text class="ct" x="394" y="741">AutoReport  Org / Rep / State</text>
+
+    <!-- right store column: x=760 w=416 (ends 1176) -->
+    <rect class="st" x="760" y="414" width="416" height="96" rx="6" fill="#ececec" stroke="#8c8c8c" stroke-dasharray="5 4"/>
+    <text class="t2" x="776" y="436">SQL Server — central (MainDb, shared)</text>
+    <text class="ct" x="776" y="457">Company registry + connection strings</text>
+    <text class="ct" x="776" y="474">AskCtk_Prompt (+ Type / History)</text>
+    <text class="cap" x="776" y="497">shared across customers · resolves the per-customer DB</text>
+
+    <rect class="st" x="760" y="522" width="416" height="74" rx="6"/>
+    <text class="t2" x="776" y="545">PostgreSQL + pgvector</text>
+    <text class="s"  x="776" y="565">AI chat · threads · messages · long-term memory</text>
+    <text class="cap" x="776" y="582">used by Ask CTK — MCP</text>
+
+    <rect class="st" x="760" y="608" width="416" height="74" rx="6"/>
+    <text class="t2" x="776" y="631">Redis</text>
+    <text class="s"  x="776" y="651">session UserContext · lookup cache</text>
+    <text class="cap" x="776" y="668">used by Auto Liability API · Mobile API</text>
+
+    <rect class="st" x="760" y="694" width="416" height="74" rx="6"/>
+    <text class="t2" x="776" y="717">AWS S3</text>
+    <text class="s"  x="776" y="737">evidence · scenes · identity · transcripts · PDF reports</text>
+    <text class="cap" x="776" y="754">used by Mobile API · Scene API</text>
+
+    <!-- ================= EXTERNAL ================= -->
+    <text class="lbl" x="24" y="806">EXTERNAL SERVICES   ·   called by the services above</text>
+    <!-- 5 chips: x=24,258,492,726,960  w=216 -->
+    <rect class="ext" x="24"  y="814" width="216" height="64" rx="4"/><text class="t2" x="132"  y="840" text-anchor="middle">Gemini (LLM)</text><text class="s" x="132"  y="858" text-anchor="middle">&larr; Ask CTK — MCP</text>
+    <rect class="ext" x="258" y="814" width="216" height="64" rx="4"/><text class="t2" x="366"  y="840" text-anchor="middle">Google Maps / Street View</text><text class="s" x="366"  y="858" text-anchor="middle">&larr; Scene · Auto</text>
+    <rect class="ext" x="492" y="814" width="216" height="64" rx="4"/><text class="t2" x="600"  y="840" text-anchor="middle">XWeather</text><text class="s" x="600"  y="858" text-anchor="middle">&larr; Auto (weather)</text>
+    <rect class="ext" x="726" y="814" width="216" height="64" rx="4"/><text class="t2" x="834"  y="840" text-anchor="middle">AWS Textract (OCR)</text><text class="s" x="834"  y="858" text-anchor="middle">&larr; Mobile API (identity)</text>
+    <rect class="ext" x="960" y="814" width="216" height="64" rx="4"/><text class="t2" x="1068" y="840" text-anchor="middle">OpenAI embeddings</text><text class="s" x="1068" y="858" text-anchor="middle">&larr; MCP (long-term memory)</text>
+  </svg>
+  </div>
+  <div class="foot">Multi-tenant: one shared <b>central</b> DB resolves each customer's own <b>Claim DB</b> replica. Apps and the AI never touch the DB directly — all reads/writes go through the .NET APIs (per-tenant, JWT). Legacy ASP is the exception (direct SQL) and is being retired.</div>
+</body>
+</html>
