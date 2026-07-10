@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Compliance Ask CTK Widget — Complete Flow</title>
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; color:#1e293b; background:#f1f5f9; line-height:1.5; }
+  .wrap { max-width:1120px; margin:0 auto; padding:0 20px 70px; }
+  header { background:linear-gradient(135deg,#0e2439,#123a5e 55%,#0e7490); color:#fff; padding:44px 20px 38px; text-align:center; }
+  header .kicker { font-size:12px; letter-spacing:3px; text-transform:uppercase; color:#7dd3fc; font-weight:700; margin-bottom:10px; }
+  header h1 { font-size:29px; font-weight:800; margin-bottom:8px; }
+  header p { color:#dbeafe; font-size:14.5px; max-width:780px; margin:0 auto; }
+  .facts { display:flex; flex-wrap:wrap; justify-content:center; gap:12px; margin:-24px auto 0; max-width:980px; padding:0 20px; }
+  .fact { background:#fff; border-radius:12px; padding:12px 16px; text-align:center; box-shadow:0 10px 26px rgba(15,23,42,.12); flex:1; min-width:120px; }
+  .fact .num { font-size:15px; font-weight:800; color:#0e7490; } .fact .lbl { font-size:10px; color:#64748b; text-transform:uppercase; letter-spacing:.5px; margin-top:3px; }
+  nav.toc { background:#fff; border-radius:12px; padding:12px 16px; box-shadow:0 4px 14px rgba(15,23,42,.06); margin-top:24px; display:flex; flex-wrap:wrap; gap:7px; }
+  nav.toc a { font-size:12px; color:#0e7490; text-decoration:none; background:#e0f2fe; padding:5px 10px; border-radius:7px; font-weight:600; }
+  nav.toc a:hover { background:#bae6fd; }
+  section { margin-top:32px; scroll-margin-top:14px; }
+  .st { font-size:13px; letter-spacing:1.2px; text-transform:uppercase; color:#0e7490; font-weight:700; margin-bottom:12px; display:flex; align-items:center; gap:10px; }
+  .st::before { content:''; width:22px; height:3px; background:#0e7490; border-radius:2px; }
+  .card { background:#fff; border-radius:14px; padding:18px 22px; box-shadow:0 4px 14px rgba(15,23,42,.06); margin-bottom:14px; }
+  .card p { color:#475569; font-size:14px; margin-bottom:8px; } .card p b { color:#0f172a; }
+  .big { font-size:15px; color:#334155; }
+  ul.simple { margin:4px 0 0 18px; } ul.simple li { font-size:14px; color:#475569; margin-bottom:7px; } ul.simple li b { color:#0f172a; }
+  code { font-family:'SF Mono',Consolas,monospace; font-size:11.5px; background:#eef2f7; padding:1px 5px; border-radius:4px; color:#0e7490; }
+  .ent { display:grid; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); gap:14px; }
+  .e { border-radius:14px; box-shadow:0 4px 14px rgba(15,23,42,.06); overflow:hidden; background:#fff; }
+  .e .h { padding:11px 16px; color:#fff; font-weight:800; font-size:15px; display:flex; align-items:center; gap:8px; }
+  .e .b { padding:13px 16px; } .e .b p { font-size:13.5px; color:#475569; margin:0 0 7px; } .e .b p b{color:#0f172a;}
+  .e .tag { font-size:11px; color:#64748b; } .e .tag b{color:#334155;}
+  .c-w{background:#1d4ed8;} .c-a{background:#0e7490;} .c-m{background:#7c3aed;} .c-l{background:#b45309;} .c-d{background:#15803d;}
+  .steps { counter-reset:s; }
+  .step { display:flex; gap:12px; align-items:flex-start; margin-bottom:10px; }
+  .step .n { counter-increment:s; background:#0e7490; color:#fff; font-weight:800; font-size:12px; width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .step .n::before { content:counter(s); }
+  .step .t { font-size:14px; color:#475569; } .step .t b { color:#0f172a; }
+  .legend { display:flex; flex-wrap:wrap; gap:14px; margin:2px 0 6px; font-size:12px; color:#475569; }
+  .legend span { display:inline-flex; align-items:center; gap:6px; } .dot{width:12px;height:12px;border-radius:3px;display:inline-block;}
+  .note { background:#ecfeff; border:1px solid #a5f3fc; border-radius:10px; padding:12px 16px; font-size:13px; color:#155e75; margin-top:10px; }
+  footer { text-align:center; margin-top:30px; color:#94a3b8; font-size:12px; }
+  @media (max-width:640px){ header h1{font-size:23px;} }
+  @media print { body{background:#fff;} .card,.e{box-shadow:none;border:1px solid #e2e8f0;page-break-inside:avoid;} nav.toc{display:none;} }
+</style>
+</head>
+<body>
+<header>
+  <div class="kicker">Claim Toolkit · Compliance</div>
+  <h1>Ask CTK Compliance Widget — Complete Flow</h1>
+  <p>A chat box, embedded in the Compliance app, that answers compliance questions in plain English with cited sources. One picture, everything explained.</p>
+</header>
+<div class="facts">
+  <div class="fact"><div class="num">Chat widget</div><div class="lbl">embedded in Compliance app</div></div>
+  <div class="fact"><div class="num">5 parts</div><div class="lbl">Widget·API·MCP·LLM·DB</div></div>
+  <div class="fact"><div class="num">Grounded + cited</div><div class="lbl">answers from CTK content</div></div>
+  <div class="fact"><div class="num">On-prem LLM</div><div class="lbl">data stays in-house</div></div>
+</div>
+<div class="wrap">
+
+  <nav class="toc">
+    <a href="#purpose">Purpose</a>
+    <a href="#know">Know-How</a>
+    <a href="#arch">Architecture</a>
+    <a href="#flow">Data Flow</a>
+    <a href="#entities">Each Part Explained</a>
+  </nav>
+
+  <!-- PURPOSE -->
+  <section id="purpose">
+    <div class="st">1 · Purpose — why this widget</div>
+    <div class="card">
+      <p class="big">Compliance staff have questions like <i>"What are beach access laws in Florida?"</i> The answers live in CTK's big compliance library, spread across many pages. This widget lets them <b>just ask</b> and get an instant, trustworthy answer.</p>
+      <ul class="simple">
+        <li><b>Instant answers</b> in plain English — no digging through pages.</li>
+        <li><b>Trust</b> — every answer shows its <b>source citations</b> (it never makes law up).</li>
+        <li><b>Embed anywhere</b> — drop it into the existing Compliance app with one snippet.</li>
+        <li><b>Reuses CTK's own content</b> — the same compliance library, for every customer.</li>
+        <li><b>On-prem AI</b> — the model runs in-house, so client data stays private.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- KNOW-HOW -->
+  <section id="know">
+    <div class="st">2 · Complete know-how — in one paragraph</div>
+    <div class="card">
+      <p class="big">The <b>Widget</b> is only the chat box. When you ask, it sends your question to the <b>Backend API</b>. The Backend <b>finds the most relevant compliance content</b> (a fast search), hands it to the <b>MCP</b>, which prompts the <b>LLM</b> to write a clean, cited answer. The answer streams back to the widget with clickable <b>citations</b>. The <b>AI never touches the database</b> — it only reads the small set of passages it's given, so answers stay grounded and safe.</p>
+      <div class="note"><b>Key idea (RAG):</b> the content is searched first, then the AI writes using only what was found — that's why answers are accurate and every claim can be cited.</div>
+    </div>
+  </section>
+
+  <!-- ARCHITECTURE -->
+  <section id="arch">
+    <div class="st">3 · Architecture — the whole picture</div>
+    <div class="card" style="padding:14px;">
+      <div class="legend">
+        <span><i class="dot" style="background:#1d4ed8"></i>Widget</span>
+        <span><i class="dot" style="background:#0e7490"></i>Backend API</span>
+        <span><i class="dot" style="background:#7c3aed"></i>MCP</span>
+        <span><i class="dot" style="background:#b45309"></i>LLM</span>
+        <span><i class="dot" style="background:#15803d"></i>Data</span>
+      </div>
+      <svg viewBox="0 0 1080 620" xmlns="http://www.w3.org/2000/svg" font-family="-apple-system,'Segoe UI',sans-serif" role="img" aria-label="Compliance widget architecture">
+        <defs><marker id="a" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto"><polygon points="0 0,9 3.5,0 7" fill="#94a3b8"/></marker>
+        <marker id="b" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto"><polygon points="0 0,9 3.5,0 7" fill="#0e7490"/></marker></defs>
+        <rect width="1080" height="620" fill="#fbfdff"/>
+
+        <!-- Host + widget -->
+        <text x="360" y="34" font-size="11" font-weight="700" fill="#64748b">COMPLIANCE APP (classic ASP host)</text>
+        <rect x="360" y="42" width="360" height="96" rx="10" fill="#eef2f7" stroke="#cbd5e1"/>
+        <rect x="392" y="74" width="296" height="52" rx="9" fill="#dbeafe" stroke="#1d4ed8"/>
+        <text x="540" y="98" text-anchor="middle" font-size="13" font-weight="800" fill="#1e3a8a">Ask CTK Widget</text>
+        <text x="540" y="115" text-anchor="middle" font-size="10.5" fill="#475569">chat box · embedded via 1-line snippet (iframe)</text>
+
+        <!-- Users -->
+        <rect x="70" y="66" width="150" height="48" rx="9" fill="#f1f5f9" stroke="#94a3b8"/><text x="145" y="95" text-anchor="middle" font-size="12.5" font-weight="700" fill="#334155">Compliance users</text>
+        <line x1="220" y1="90" x2="360" y2="95" stroke="#94a3b8" stroke-width="1.4" marker-end="url(#a)"/>
+
+        <!-- Widget -> Backend -->
+        <line x1="540" y1="138" x2="540" y2="196" stroke="#94a3b8" stroke-width="1.6" marker-end="url(#a)"/>
+        <text x="552" y="172" font-size="10.5" fill="#64748b">question (HTTPS · streamed)</text>
+
+        <!-- Backend -->
+        <rect x="360" y="198" width="360" height="70" rx="10" fill="#cffafe" stroke="#0e7490"/>
+        <text x="540" y="226" text-anchor="middle" font-size="14" font-weight="800" fill="#0e7490">Backend API</text>
+        <text x="540" y="245" text-anchor="middle" font-size="10.5" fill="#155e75">AI-CTK-NLP (FastAPI) · the only thing the widget talks to</text>
+        <text x="540" y="259" text-anchor="middle" font-size="10.5" fill="#155e75">search · prompt · stream · save history · keeps keys private</text>
+
+        <!-- MCP -->
+        <line x1="540" y1="268" x2="540" y2="312" stroke="#94a3b8" stroke-width="1.6" marker-end="url(#a)"/>
+        <rect x="410" y="314" width="260" height="56" rx="10" fill="#ede9fe" stroke="#7c3aed"/>
+        <text x="540" y="338" text-anchor="middle" font-size="13" font-weight="800" fill="#5b21b6">MCP</text>
+        <text x="540" y="356" text-anchor="middle" font-size="10.5" fill="#5b21b6">picks tools + prompt · enforces citation format</text>
+
+        <!-- LLM -->
+        <line x1="540" y1="370" x2="540" y2="414" stroke="#94a3b8" stroke-width="1.6" marker-end="url(#a)"/>
+        <rect x="410" y="416" width="260" height="58" rx="10" fill="#fef3c7" stroke="#b45309"/>
+        <text x="540" y="440" text-anchor="middle" font-size="13" font-weight="800" fill="#92400e">Custom LLM (on-prem)</text>
+        <text x="540" y="458" text-anchor="middle" font-size="10.5" fill="#92400e">writes the plain-English, cited answer</text>
+
+        <!-- Retrieval (left) -->
+        <rect x="70" y="314" width="270" height="56" rx="10" fill="#dcfce7" stroke="#15803d"/>
+        <text x="205" y="338" text-anchor="middle" font-size="12.5" font-weight="800" fill="#14532d">Retrieval — FAISS index</text>
+        <text x="205" y="356" text-anchor="middle" font-size="10.5" fill="#166534">semantic search + embeddings (top matches)</text>
+        <line x1="410" y1="234" x2="342" y2="330" stroke="#0e7490" stroke-width="1.5" marker-end="url(#b)"/>
+        <text x="300" y="300" font-size="10.5" fill="#0e7490">① find content</text>
+        <line x1="342" y1="342" x2="412" y2="430" stroke="#94a3b8" stroke-width="1.4" marker-end="url(#a)"/>
+        <text x="330" y="392" font-size="10.5" fill="#64748b">② passages → LLM</text>
+
+        <!-- Compliance DB (source) -->
+        <rect x="70" y="418" width="270" height="72" rx="10" fill="#dcfce7" stroke="#15803d"/>
+        <text x="205" y="444" text-anchor="middle" font-size="12.5" font-weight="800" fill="#14532d">Compliance DB (central)</text>
+        <text x="205" y="462" text-anchor="middle" font-size="10.5" fill="#166534">DB* state-law content · citations · sources</text>
+        <text x="205" y="478" text-anchor="middle" font-size="10.5" fill="#166534">same library for all customers</text>
+        <line x1="205" y1="418" x2="205" y2="372" stroke="#15803d" stroke-width="1.4" stroke-dasharray="5 4" marker-end="url(#a)"/>
+        <text x="214" y="398" font-size="10" fill="#15803d">indexed (offline)</text>
+
+        <!-- History DB (right) -->
+        <rect x="760" y="314" width="250" height="56" rx="10" fill="#f0fdf4" stroke="#15803d"/>
+        <text x="885" y="338" text-anchor="middle" font-size="12.5" font-weight="800" fill="#14532d">History DB (Postgres)</text>
+        <text x="885" y="356" text-anchor="middle" font-size="10.5" fill="#166534">chats · projects · feedback</text>
+        <line x1="720" y1="238" x2="800" y2="330" stroke="#94a3b8" stroke-width="1.4" marker-end="url(#a)"/>
+        <text x="742" y="300" font-size="10.5" fill="#64748b">save</text>
+
+        <!-- return arrow -->
+        <path d="M672,445 C860,470 900,300 720,250" fill="none" stroke="#0e7490" stroke-width="1.6" stroke-dasharray="6 4" marker-end="url(#b)"/>
+        <text x="700" y="520" font-size="11" fill="#0e7490" font-weight="600">③ answer + citations stream back up to the widget →</text>
+
+        <text x="70" y="560" font-size="11" fill="#0f172a" font-weight="600">Flow: Widget → Backend API → MCP → LLM. The AI only reads the found passages — never the database directly.</text>
+      </svg>
+    </div>
+  </section>
+
+  <!-- DATA FLOW -->
+  <section id="flow">
+    <div class="st">4 · Data flow — step by step</div>
+    <div class="card">
+      <p style="margin-bottom:10px;"><b>Setup (once, in the background):</b> the Compliance DB content is turned into a searchable <b>index</b> (FAISS). Refreshed when content changes.</p>
+      <div class="steps">
+        <div class="step"><div class="n"></div><div class="t"><b>User asks</b> a question in the widget (e.g. "beach access laws in Florida").</div></div>
+        <div class="step"><div class="n"></div><div class="t">Widget <b>sends it to the Backend API</b> (with state + line-of-business context), over a streaming connection.</div></div>
+        <div class="step"><div class="n"></div><div class="t">Backend <b>searches the index</b> and pulls the most relevant compliance passages + their source info.</div></div>
+        <div class="step"><div class="n"></div><div class="t"><b>MCP builds the prompt</b> (passages + rules + chat history) and calls the <b>LLM</b>.</div></div>
+        <div class="step"><div class="n"></div><div class="t">LLM <b>writes a structured, cited answer</b>, emitting <code>[ref: title | source | description | url]</code> markers.</div></div>
+        <div class="step"><div class="n"></div><div class="t">Backend <b>streams the answer back</b> + a clean <b>sources list</b>, and <b>saves</b> the chat to history.</div></div>
+        <div class="step"><div class="n"></div><div class="t">Widget <b>shows the answer</b>, turns <code>[ref:]</code> markers into <b>clickable citation chips</b>, and fills the <b>References panel</b>.</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ENTITIES -->
+  <section id="entities">
+    <div class="st">5 · Each part explained (Widget · API · MCP · LLM · DB)</div>
+    <div class="ent">
+
+      <div class="e">
+        <div class="h c-w">🗨️ Widget</div>
+        <div class="b">
+          <p><b>What:</b> the chat box users see and type in.</p>
+          <p><b>Does:</b> shows the question, streamed answer, inline citation chips, References panel, chat history. Embedded via a 1-line snippet (iframe) into the Compliance app.</p>
+          <p><b>Does NOT:</b> no AI, no database, no secrets — it only calls the Backend.</p>
+          <p class="tag"><b>Tech:</b> React · standalone repo · host-agnostic</p>
+        </div>
+      </div>
+
+      <div class="e">
+        <div class="h c-a">⚙️ Backend API</div>
+        <div class="b">
+          <p><b>What:</b> the front door + brain coordinator (AI-CTK-NLP).</p>
+          <p><b>Does:</b> receives the question, searches the compliance index, asks the AI (via MCP), streams the cited answer back, saves chat history. The <b>only</b> thing the widget talks to.</p>
+          <p><b>Why here:</b> keeps LLM keys + data access private (never exposed to the browser).</p>
+          <p class="tag"><b>Tech:</b> FastAPI · FAISS · Postgres · SSE streaming</p>
+        </div>
+      </div>
+
+      <div class="e">
+        <div class="h c-m">🧩 MCP</div>
+        <div class="b">
+          <p><b>What:</b> the orchestrator between the Backend and the model.</p>
+          <p><b>Does:</b> chooses the right tools + prompt, feeds the found passages + rules to the LLM, and <b>enforces the citation format</b> so answers are always sourced.</p>
+          <p class="tag"><b>Tech:</b> tool/prompt layer (MCP)</p>
+        </div>
+      </div>
+
+      <div class="e">
+        <div class="h c-l">🧠 Custom LLM</div>
+        <div class="b">
+          <p><b>What:</b> the AI that writes the answer.</p>
+          <p><b>Does:</b> reads the question + the found compliance passages and writes a clear, structured, <b>cited</b> answer in plain English.</p>
+          <p><b>Key:</b> runs <b>on-prem/in-house</b> (data control); it only sees the passages it's given — <b>never the database</b>.</p>
+          <p class="tag"><b>Tech:</b> proprietary on-prem model (via an adapter)</p>
+        </div>
+      </div>
+
+      <div class="e">
+        <div class="h c-d">🗄️ Data (DB + Index)</div>
+        <div class="b">
+          <p><b>What:</b> the source of truth — CTK's <b>central compliance content</b>.</p>
+          <p><b>Content DB:</b> the shared <code>DB*</code> tables — state-law summaries, citations, sources, charts. Same library for every customer.</p>
+          <p><b>Search index:</b> that content turned into a <b>FAISS</b> vector index for fast, meaning-based search.</p>
+          <p><b>History DB:</b> Postgres stores chats, projects, and feedback.</p>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <footer>Claim Toolkit — Compliance Ask CTK Widget · complete flow (Widget → Backend API → MCP → Custom LLM, grounded on CTK compliance content).</footer>
+</div>
+</body>
+</html>
