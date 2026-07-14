@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Documents &amp; Correspondence — Upload Document or Text (Mockup)</title>
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:'Segoe UI',Arial,sans-serif; color:#1e293b; background:#eef2f7; padding:20px 18px 60px; }
+  .wrap { max-width:1180px; margin:0 auto; }
+  .pagenote { font-size:12.5px; color:#64748b; margin-bottom:14px; }
+  .pagenote b{color:#334155;}
+  .card { background:#fff; border:1px solid #e6eaf0; border-radius:12px; box-shadow:0 1px 3px rgba(15,23,42,.05); margin-bottom:16px; }
+  .card .hd { padding:14px 20px; border-bottom:1px solid #eef2f7; }
+  .card .hd h2 { font-size:16px; font-weight:800; color:#173867; display:flex; align-items:center; gap:8px; }
+  .card .hd p { font-size:12.5px; color:#64748b; margin-top:3px; }
+  .card .bd { padding:16px 20px; }
+  .ico { color:#0a7640; }
+
+  label { display:block; font-size:12.5px; font-weight:700; color:#334155; margin-bottom:5px; }
+  select, input[type=text] { border:1px solid #cbd5e1; border-radius:8px; padding:8px 11px; font-size:13.5px; color:#1E3A5F; background:#fff; }
+  select:focus, input:focus, textarea:focus { outline:none; border-color:#0a7640; }
+  .catrow { max-width:340px; margin-bottom:14px; } .catrow select { width:100%; }
+
+  /* segmented mode toggle */
+  .modeseg { display:inline-flex; background:#eef2f7; border-radius:10px; padding:3px; margin-bottom:16px; }
+  .modeseg button { border:none; background:transparent; font-size:13px; font-weight:700; color:#5a6a7e; padding:8px 16px; border-radius:8px; cursor:pointer; display:flex; align-items:center; gap:6px; }
+  .modeseg button.on { background:#fff; color:#0a7640; box-shadow:0 1px 3px rgba(15,23,42,.12); }
+
+  .mode { display:none; } .mode.on { display:block; }
+
+  /* dropzone */
+  .drop { border:2px dashed #d3dae4; border-radius:10px; background:#f8fafc; padding:34px 20px; text-align:center; }
+  .drop .u { font-size:26px; color:#94a3b8; }
+  .drop .t { font-size:14px; color:#1E3A5F; font-weight:600; margin-top:8px; }
+  .drop .s { font-size:12px; color:#94a3b8; margin-top:4px; }
+  .btn { border:none; border-radius:8px; font-size:13px; font-weight:700; cursor:pointer; padding:9px 18px; }
+  .btn.green { background:#0a7640; color:#fff; } .btn.green:hover{ background:#085c32; }
+  .btn.ghost { background:#eef2f7; color:#173867; }
+  .drop .btn { margin-top:14px; }
+
+  /* statement editor */
+  .stmt .grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:12px; }
+  .stmt textarea { width:100%; border:1px solid #cbd5e1; border-radius:8px; padding:11px 12px; font-size:13.5px; color:#1E3A5F; font-family:inherit; resize:vertical; min-height:170px; line-height:1.5; }
+  .stmt .foot { display:flex; align-items:center; gap:12px; margin-top:10px; }
+  .stmt .cc { font-size:12px; color:#94a3b8; } .stmt .spacer{ flex:1; }
+  .hintline { font-size:12px; color:#94a3b8; margin-top:6px; }
+
+  /* list */
+  .listhd { display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap; }
+  .listhd .cnt { font-size:12.5px; color:#0a7640; margin-top:2px; }
+  .filters { display:flex; gap:10px; align-items:flex-end; }
+  table { width:100%; border-collapse:collapse; margin-top:12px; }
+  th { text-align:left; background:#f8fafc; color:#5a6a7e; font-size:11px; text-transform:uppercase; letter-spacing:.4px; padding:9px 12px; border-bottom:1px solid #e2e8f0; }
+  td { padding:10px 12px; border-bottom:1px solid #eef2f7; font-size:13px; color:#475569; vertical-align:middle; }
+  td:first-child { color:#0f172a; font-weight:600; }
+  .badge { font-size:10.5px; font-weight:700; padding:2px 8px; border-radius:12px; }
+  .b-doc { background:#dbeafe; color:#1d4ed8; } .b-txt { background:#dcfce7; color:#15803d; }
+  .catpill { font-size:11.5px; color:#475569; background:#f1f5f9; border:1px solid #e2e8f0; padding:2px 8px; border-radius:10px; }
+  .act a { color:#0a7640; text-decoration:none; font-size:12.5px; margin-right:10px; cursor:pointer; }
+  .act a.del { color:#dc2626; }
+  .empty { text-align:center; color:#b45309; font-size:13px; padding:22px; }
+  .preview { font-size:12px; color:#64748b; }
+
+  /* viewer modal */
+  .viewer { display:none; position:fixed; inset:0; background:rgba(15,23,42,.45); align-items:center; justify-content:center; padding:20px; z-index:50; }
+  .vcard { background:#fff; border-radius:12px; width:100%; max-width:680px; max-height:86vh; display:flex; flex-direction:column; box-shadow:0 24px 60px rgba(15,23,42,.3); overflow:hidden; }
+  .vhead { display:flex; align-items:center; gap:10px; padding:14px 18px; border-bottom:1px solid #eef2f7; }
+  .vhead h3 { font-size:15px; color:#173867; font-weight:800; flex:1; }
+  .vx { border:none; background:none; font-size:22px; color:#94a3b8; cursor:pointer; line-height:1; }
+  .vmeta { padding:9px 18px; font-size:12.5px; color:#64748b; border-bottom:1px solid #f1f5f9; }
+  .vmeta b { color:#334155; font-weight:700; }
+  .vtext, .vdoc { padding:14px 18px; overflow:auto; }
+  .vbodybox { background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:12px 14px; max-height:48vh; overflow:auto; }
+  .vbodybox pre { white-space:pre-wrap; word-wrap:break-word; font-family:inherit; font-size:13.5px; color:#1e293b; line-height:1.55; margin:0; }
+  .vfoot { display:flex; justify-content:flex-end; gap:10px; margin-top:14px; }
+  .vdoc { text-align:center; } .vfileicon { font-size:34px; } .vfile { font-weight:700; color:#173867; margin-top:8px; } .vnote { font-size:12px; color:#94a3b8; margin-top:6px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="pagenote">Mockup — "<b>Document &amp; Correspondence</b>" enhanced so a user can add <b>either a file OR a long text statement</b>; both appear in the same list. (Auto Liability task: "user can upload Document or Text both".)</div>
+
+  <!-- UPLOAD CARD -->
+  <div class="card">
+    <div class="hd">
+      <h2><span class="ico">⬆️</span> Add to Claim</h2>
+      <p>Upload photos, police reports, medical documents and other evidence — or add a typed/pasted statement.</p>
+    </div>
+    <div class="bd">
+      <!-- MODE TOGGLE -->
+      <div class="modeseg">
+        <button class="on" id="mDoc" onclick="setMode('doc')">📄 Upload Document</button>
+        <button id="mTxt" onclick="setMode('txt')">📝 Add Text Statement</button>
+      </div>
+
+      <!-- MODE: DOCUMENT -->
+      <div class="mode on" id="modeDoc">
+        <div class="catrow">
+          <label>Category</label>
+          <select id="docCat">
+            <option>Police Report</option><option>Photos / Images</option><option>Medical Documents</option>
+            <option>Correspondence</option><option>Audio Recording</option><option>Other Evidence</option>
+          </select>
+        </div>
+        <div class="drop">
+          <div class="u">⬆️</div>
+          <div class="t">Drag and drop files here, or click to browse</div>
+          <div class="s">Supports PDF, images, Word, Excel, text &amp; audio recordings (max 10&nbsp;MB per file)</div>
+          <button class="btn green" onclick="addDoc()">Select Files</button>
+        </div>
+      </div>
+
+      <!-- MODE: TEXT STATEMENT -->
+      <div class="mode stmt" id="modeTxt">
+        <div class="grid">
+          <div>
+            <label>Category</label>
+            <select id="txtCat">
+              <option>Statement</option><option>Correspondence</option><option>Adjuster Note</option><option>Other</option>
+            </select>
+          </div>
+          <div>
+            <label>Related party (optional)</label>
+            <select id="txtParty">
+              <option value="">— None —</option><option>Quentin Davis (Insured)</option><option>Riley Carter (Claimant)</option><option>Sam Diaz (Witness)</option>
+            </select>
+          </div>
+        </div>
+        <div style="margin-bottom:12px">
+          <label>Title</label>
+          <input type="text" id="txtTitle" style="width:100%" placeholder="e.g. Recorded statement — Riley Carter">
+        </div>
+        <div>
+          <label>Statement text</label>
+          <textarea id="txtBody" placeholder="Type or paste the full statement here… (long text supported)" oninput="cc()"></textarea>
+          <div class="hintline">Paste a recorded-statement transcript, correspondence, or adjuster narrative. Use {party_name} tokens if needed.</div>
+        </div>
+        <div class="foot">
+          <span class="cc" id="cc">0 characters</span>
+          <span class="spacer"></span>
+          <button class="btn ghost" onclick="clearStmt()">Clear</button>
+          <button class="btn green" onclick="addStmt()">Save Statement</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LIST CARD -->
+  <div class="card">
+    <div class="hd">
+      <div class="listhd">
+        <div>
+          <h2><span class="ico">📁</span> Documents &amp; Correspondence</h2>
+          <div class="cnt"><span id="count">0</span> items in this claim</div>
+        </div>
+        <div class="filters">
+          <div>
+            <label>Type</label>
+            <select id="fType" onchange="renderList()"><option value="">All</option><option>Document</option><option>Statement</option></select>
+          </div>
+          <div>
+            <label>Category</label>
+            <select id="fCat" onchange="renderList()"><option value="">All Categories</option><option>Police Report</option><option>Statement</option><option>Photos / Images</option><option>Medical Documents</option><option>Correspondence</option><option>Other Evidence</option></select>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="bd" style="padding-top:4px">
+      <table>
+        <thead>
+          <tr><th style="width:34%">Name</th><th>Type</th><th>Category</th><th>Uploaded By</th><th>Date</th><th style="text-align:right">Actions</th></tr>
+        </thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- VIEWER MODAL (statement full text / document info) -->
+<div id="viewer" class="viewer" onclick="if(event.target===this)closeView()">
+  <div class="vcard">
+    <div class="vhead">
+      <span id="vBadge" class="badge b-txt">Statement</span>
+      <h3 id="vTitle">—</h3>
+      <button class="vx" onclick="closeView()" title="Close">&times;</button>
+    </div>
+    <div id="vMeta" class="vmeta"></div>
+
+    <!-- statement text view -->
+    <div id="vText" class="vtext">
+      <div class="vbodybox"><pre id="vBody"></pre></div>
+      <div class="vfoot">
+        <button class="btn ghost" id="vCopy">Copy text</button>
+        <button class="btn green" onclick="closeView()">Close</button>
+      </div>
+    </div>
+
+    <!-- document info view -->
+    <div id="vDoc" class="vdoc" style="display:none">
+      <div class="vfileicon">📄</div>
+      <div id="vFile" class="vfile">—</div>
+      <div class="vnote">The file preview / download opens here in the real app.</div>
+      <div class="vfoot"><button class="btn green" onclick="closeView()">Close</button></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // seed with one of each so both kinds visibly coexist (screenshot's empty state also supported)
+  let seq = 0;
+  let items = [
+    { id:++seq, name:'MPD-2026-55021.pdf', type:'Document', cat:'Police Report', by:'Alex Morgan', date:'Jul 12, 2026', preview:'PDF · 240 KB' },
+    { id:++seq, name:'Recorded statement — Riley Carter', type:'Statement', cat:'Statement', party:'Riley Carter (Claimant)', by:'Alex Morgan', date:'Jul 12, 2026',
+      preview:'"Clmt approached the stop sign, did not fully stop…"',
+      body:'I was heading north on Nicollet Ave. As I approached the intersection at W 5th St I slowed for the stop sign but did not come to a complete stop before entering the intersection — I had glanced down at my GPS. When I looked up the insured vehicle was already crossing and I struck the passenger side. My speed was around 20 mph.\n\nThere were no injuries requiring hospitalization; I had minor neck soreness and went to urgent care later that afternoon. The road was dry and it was daylight, clear weather.' },
+  ];
+
+  function setMode(m){
+    document.getElementById('modeDoc').classList.toggle('on', m==='doc');
+    document.getElementById('modeTxt').classList.toggle('on', m==='txt');
+    document.getElementById('mDoc').classList.toggle('on', m==='doc');
+    document.getElementById('mTxt').classList.toggle('on', m==='txt');
+  }
+  function cc(){ document.getElementById('cc').textContent = document.getElementById('txtBody').value.length + ' characters'; }
+  function clearStmt(){ document.getElementById('txtTitle').value=''; document.getElementById('txtBody').value=''; cc(); }
+
+  function addDoc(){
+    const cat = document.getElementById('docCat').value;
+    items.unshift({ id:++seq, name:'new-file-'+seq+'.pdf', type:'Document', cat, by:'You', date:'Jul 14, 2026', preview:'PDF · 1.2 MB' });
+    renderList();
+  }
+  function addStmt(){
+    const title = document.getElementById('txtTitle').value.trim() || 'Untitled statement';
+    const cat = document.getElementById('txtCat').value;
+    const party = document.getElementById('txtParty').value;
+    const body = document.getElementById('txtBody').value.trim();
+    if(!body){ alert('Enter the statement text.'); return; }
+    items.unshift({ id:++seq, name: title + (party?(' — '+party):''), type:'Statement', cat, party, by:'You', date:'Jul 14, 2026', preview:'"'+body.slice(0,70)+(body.length>70?'…':'')+'"', body });
+    clearStmt(); setMode('doc'); renderList();
+  }
+
+  function renderList(){
+    const ft = document.getElementById('fType').value, fc = document.getElementById('fCat').value;
+    const list = items.filter(i => (!ft||i.type===ft) && (!fc||i.cat===fc));
+    document.getElementById('count').textContent = items.length;
+    const tb = document.getElementById('rows');
+    if(!list.length){ tb.innerHTML = '<tr><td colspan="6" class="empty">No documents or correspondence available.</td></tr>'; return; }
+    tb.innerHTML = list.map(i => `
+      <tr>
+        <td>${i.name}<div class="preview">${i.preview}</div></td>
+        <td><span class="badge ${i.type==='Document'?'b-doc':'b-txt'}">${i.type}</span></td>
+        <td><span class="catpill">${i.cat}</span></td>
+        <td>${i.by}</td>
+        <td>${i.date}</td>
+        <td class="act" style="text-align:right"><a onclick="openView(${i.id})">View</a>${i.type==='Document'?'<a>Download</a>':`<a onclick="openView(${i.id})">Edit</a>`}<a class="del">Delete</a></td>
+      </tr>`).join('');
+  }
+
+  // ---- viewer ----
+  function openView(id){
+    const i = items.find(x=>x.id===id); if(!i) return;
+    document.getElementById('vTitle').textContent = i.name;
+    const b = document.getElementById('vBadge');
+    b.textContent = i.type; b.className = 'badge ' + (i.type==='Document'?'b-doc':'b-txt');
+    document.getElementById('vMeta').innerHTML =
+      `<span class="catpill">${i.cat}</span>` + (i.party?` &nbsp; <b>Party:</b> ${i.party}`:'') +
+      ` &nbsp; <b>By:</b> ${i.by} &nbsp; <b>${i.date}</b>`;
+    const txtBox = document.getElementById('vText'), docBox = document.getElementById('vDoc');
+    if(i.type==='Statement'){
+      txtBox.style.display='block'; docBox.style.display='none';
+      document.getElementById('vBody').textContent = i.body || '(no text)';
+      document.getElementById('vCopy').onclick = ()=>{
+        if(navigator.clipboard) navigator.clipboard.writeText(i.body||'');
+        document.getElementById('vCopy').textContent = 'Copied ✓';
+        setTimeout(()=>document.getElementById('vCopy').textContent='Copy text',1200);
+      };
+    } else {
+      txtBox.style.display='none'; docBox.style.display='block';
+      document.getElementById('vFile').textContent = i.name + '  ·  ' + i.preview;
+    }
+    document.getElementById('viewer').style.display='flex';
+  }
+  function closeView(){ document.getElementById('viewer').style.display='none'; }
+  document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeView(); });
+
+  renderList();
+</script>
+</body>
+</html>
