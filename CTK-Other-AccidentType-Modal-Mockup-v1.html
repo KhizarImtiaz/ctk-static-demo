@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>"Other" Accident Type — Assessment Modal (Mockup)</title>
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:'Segoe UI',Arial,sans-serif; color:#1e293b; background:#eef2f7; }
+  .pagenote { max-width:1040px; margin:16px auto 0; padding:0 18px; font-size:12.5px; color:#64748b; }
+  .pagenote b{color:#334155;}
+  .backdrop { display:flex; align-items:flex-start; justify-content:center; padding:22px 18px 60px; }
+  .modal { width:100%; max-width:1040px; background:#fff; border-radius:14px; box-shadow:0 24px 60px rgba(15,23,42,.28); overflow:hidden; }
+  .m-head { background:#173867; color:#fff; padding:14px 20px; display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
+  .m-head h2 { font-size:17px; font-weight:800; }
+  .m-head .atype { background:#0a7640; font-size:11px; font-weight:700; padding:3px 9px; border-radius:20px; }
+  .m-head .x { margin-left:auto; cursor:pointer; opacity:.8; font-size:20px; background:none;border:none;color:#fff; }
+  .claimbar { background:#f1f5f9; padding:9px 20px; font-size:12.5px; color:#475569; display:flex; flex-wrap:wrap; gap:16px; border-bottom:1px solid #e2e8f0; }
+  .claimbar b { color:#0f172a; }
+  .juris { background:#fff7ed; border-bottom:1px solid #fed7aa; color:#9a3412; padding:8px 20px; font-size:12.5px; }
+  .tabs { display:flex; gap:2px; padding:10px 16px 0; background:#fff; border-bottom:1px solid #e2e8f0; flex-wrap:wrap; }
+  .tab { border:none; background:#eef2f7; color:#475569; font-size:12.5px; font-weight:700; padding:9px 13px; border-radius:8px 8px 0 0; cursor:pointer; }
+  .tab.active { background:#0a7640; color:#fff; }
+  .tab.hidden { display:none; }
+  .tab .num { opacity:.7; margin-right:5px; }
+  .m-body { padding:18px 20px; max-height:62vh; overflow-y:auto; }
+  .panel { display:none; } .panel.active { display:block; }
+  .grp { border:1px solid #e5e9f0; border-radius:10px; padding:12px 14px; margin-bottom:14px; }
+  .grp > h3 { font-size:11px; text-transform:uppercase; letter-spacing:.6px; color:#0a7640; margin-bottom:10px; font-weight:800; }
+  .row { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
+  .row2 { display:grid; grid-template-columns:repeat(2,1fr); gap:12px; }
+  label { display:block; font-size:12px; font-weight:600; color:#334155; margin-bottom:4px; }
+  input[type=text], input[type=number], select, textarea { width:100%; border:1px solid #c7ced9; border-radius:8px; padding:8px 10px; font-size:13px; color:#1E3A5F; font-family:inherit; background:#fff; }
+  select:focus, input:focus, textarea:focus { outline:none; border-color:#0a7640; }
+  textarea { resize:vertical; }
+  .hint { font-size:11px; color:#94a3b8; margin-top:4px; }
+  .sub { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .field { margin-bottom:12px; }
+  .chips { display:flex; flex-wrap:wrap; gap:6px; }
+  .chip { border:1px solid #c7ced9; background:#f8fafc; color:#334155; font-size:12px; padding:5px 10px; border-radius:16px; cursor:pointer; }
+  .chip.on { background:#0a7640; border-color:#0a7640; color:#fff; }
+  .toggle { display:inline-flex; align-items:center; gap:8px; }
+  .switch { width:42px; height:22px; border-radius:12px; background:#cbd5e1; position:relative; cursor:pointer; }
+  .switch.on { background:#0a7640; } .switch b { position:absolute; top:2px; left:2px; width:18px; height:18px; border-radius:50%; background:#fff; transition:.15s; }
+  .switch.on b { left:22px; }
+  .callout { background:#ecfdf5; border:1px solid #a7f3d0; border-radius:8px; padding:9px 12px; font-size:12.5px; color:#065f46; margin-bottom:14px; }
+  .callout.blue { background:#eff6ff; border-color:#bfdbfe; color:#1e40af; }
+  .m-foot { border-top:1px solid #e2e8f0; padding:12px 20px; display:flex; align-items:center; gap:10px; background:#fff; }
+  .m-foot .spacer { flex:1; }
+  .btn { border:none; border-radius:8px; padding:9px 16px; font-size:13px; font-weight:700; cursor:pointer; }
+  .btn.ghost { background:#eef2f7; color:#173867; } .btn.prim { background:#0a7640; color:#fff; } .btn.line { background:#fff; border:1px solid #c7ced9; color:#334155; }
+  /* duties */
+  .duty { border:1px solid #e5e9f0; border-radius:10px; margin-bottom:12px; overflow:hidden; }
+  .duty .dh { background:#eef4fb; padding:8px 12px; font-weight:700; font-size:13px; color:#173867; display:flex; gap:8px; }
+  .duty .badge { font-size:10px; background:#dbeafe; color:#1d4ed8; padding:2px 7px; border-radius:10px; font-weight:700; }
+  .duty .db { display:grid; grid-template-columns:1fr 1fr; }
+  .duty .col { padding:10px 12px; } .duty .col:first-child { border-right:1px solid #eef2f7; }
+  .duty .col .clbl { font-size:11px; font-weight:700; color:#64748b; text-transform:uppercase; margin-bottom:5px; }
+  .seed { background:#f8fafc; border:1px dashed #cbd5e1; border-radius:8px; padding:8px 10px; font-size:12px; color:#475569; max-height:120px; overflow:auto; }
+  /* multi-car */
+  .mcbar { display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:12px; }
+  .veh { border:1px solid #dbe3ee; border-radius:10px; margin-bottom:12px; }
+  .veh .vh { background:#f1f5f9; padding:8px 12px; font-weight:800; color:#173867; font-size:13px; display:flex; align-items:center; gap:10px; border-radius:10px 10px 0 0; }
+  .veh .vh .who { font-size:10px; font-weight:700; padding:2px 8px; border-radius:10px; }
+  .veh .vh .ins { background:#dbeafe; color:#1d4ed8; } .veh .vh .clm { background:#fef3c7; color:#92400e; }
+  .veh .vh input { max-width:220px; margin-left:auto; }
+  .vbody { padding:10px 12px; }
+  .vgrid { display:grid; grid-template-columns:repeat(2,1fr); gap:10px; }
+  .vgrid .f label { font-size:11px; }
+  .vres { margin-top:10px; padding:8px 12px; background:#f0fdf4; border:1px solid #bbf7d0; border-radius:8px; font-size:12.5px; color:#166534; }
+  .vres b { font-size:14px; color:#14532d; }
+  .weights { font-size:11px; color:#64748b; }
+  table.res { width:100%; border-collapse:collapse; font-size:12.5px; margin-top:6px; }
+  table.res th { background:#173867; color:#fff; text-align:left; padding:7px 10px; font-size:11px; }
+  table.res td { border-bottom:1px solid #eef2f7; padding:7px 10px; } table.res td:first-child{font-weight:700;color:#0f172a;}
+  @media (max-width:720px){ .row,.duty .db,.sub,.vgrid{grid-template-columns:1fr;} }
+</style>
+</head>
+<body>
+  <div class="pagenote">Mockup only — proposed <b>"Other" accident-type assessment as a modal</b>. Selecting <b>Multi Car</b> reveals the in-modal <b>Multi-Car Vehicles</b> calculator that replaces <code>MultiCarAssessment.xls</code> (download → fill → copy-paste). Tabs, toggles, and "Compute" are clickable.</div>
+  <div class="backdrop">
+    <div class="modal">
+      <div class="m-head">
+        <h2>Edit Assessment</h2>
+        <span class="atype">Accident Type: OTHER</span>
+        <button class="x" title="Close">&times;</button>
+      </div>
+      <div class="claimbar">
+        <span>Claim: <b>ZPA003458874</b></span><span>Insured: <b>Quentin Davis</b></span>
+        <span>Date of Loss: <b>6/15/2022</b></span><span>State: <b>Virginia</b></span>
+      </div>
+      <div class="juris"><b>Virginia — Contributory Negligence:</b> any negligence eliminates recovery. Check company procedure. <span style="color:#c2410c">(auto-loaded from state rules)</span></div>
+
+      <div class="tabs" id="tabs">
+        <button class="tab active" data-t="p1"><span class="num">1</span>Parties &amp; Negligence</button>
+        <button class="tab hidden" data-t="pmc" id="tabmc"><span class="num">2</span>Multi-Car Vehicles</button>
+        <button class="tab" data-t="p2"><span class="num">3</span>Scene Factors</button>
+        <button class="tab" data-t="p3"><span class="num">4</span>Duties &amp; Evidence</button>
+        <button class="tab" data-t="p4"><span class="num">5</span>Impact &amp; Summary</button>
+      </div>
+
+      <div class="m-body">
+        <!-- PANEL 1 -->
+        <div class="panel active" id="p1">
+          <div class="callout">✔ No Excel. Pick-lists, legal duty text, and the Multi-Car negligence calculator are all in the app — no download / copy-paste.</div>
+          <div class="grp">
+            <h3>Accident type &amp; flags</h3>
+            <div class="row">
+              <div>
+                <label>"Other" accident type</label>
+                <select id="atsel" onchange="onType()">
+                  <option value="">— Select —</option>
+                  <option>Rear End</option>
+                  <option>Non Named Party</option>
+                  <option>Railroad</option>
+                  <option selected>Multi Car</option>
+                  <option>Sudden Incapacitation</option>
+                  <option>Act of God</option>
+                  <option>Product Liability</option>
+                  <option>Mechanic Liability</option>
+                  <option>Governmental Liability</option>
+                  <option>Construction Zone</option>
+                </select>
+                <div class="hint" id="atnote">Each type replaces its old spreadsheet template.</div>
+              </div>
+              <div>
+                <label>Deny Claimant?</label>
+                <div class="toggle"><span class="switch" onclick="this.classList.toggle('on')"><b></b></span><span>No / Yes</span></div>
+              </div>
+              <div>
+                <label>Multi Car (more than 2)?</label>
+                <div class="toggle"><span class="switch on" id="mc" onclick="toggleMC(this)"><b></b></span><span>No / Yes</span></div>
+              </div>
+            </div>
+          </div>
+          <div class="grp" id="negGrp">
+            <h3>Negligence %</h3>
+            <div class="callout blue" id="negNote" style="margin-bottom:10px">For Multi-Car, negligence % is <b>computed per vehicle</b> in the “Multi-Car Vehicles” tab — no manual entry needed here.</div>
+            <div class="row2">
+              <div><label>Insured negligence (Actual / Low / High)</label><div class="sub"><input type="number" value="0" placeholder="Actual"><input type="number" value="0" placeholder="Low"></div><div style="margin-top:8px"><input type="number" value="0" placeholder="High"></div></div>
+              <div><label>Claimant negligence (Actual / Low / High)</label><div class="sub"><input type="number" value="0" placeholder="Actual"><input type="number" value="0" placeholder="Low"></div><div style="margin-top:8px"><input type="number" value="0" placeholder="High"></div></div>
+            </div>
+          </div>
+          <div class="grp"><h3>Brief accident description</h3><textarea rows="3">Multi-vehicle collision. Clmt changed lanes into insd veh.</textarea></div>
+        </div>
+
+        <!-- PANEL MULTI-CAR (Excel replacement) -->
+        <div class="panel" id="pmc">
+          <div class="callout">✔ This replaces <code>MultiCarAssessment.xls</code>. Answer the causation questions per vehicle → the suggested negligence split is computed here and saved to the assessment.</div>
+          <div class="mcbar">
+            <label style="margin:0">Number of vehicles</label>
+            <select id="vcount" style="width:90px" onchange="renderVehicles()">
+              <option>2</option><option selected>3</option><option>4</option><option>5</option>
+              <option>6</option><option>7</option><option>8</option><option>9</option><option>10</option>
+            </select>
+            <span class="weights">Weights: ROW 60% · Lookout 15% · Lookout-Speed 5% · Avoidance 3.75% · Avoidance-Speed 1.25% · POI 10% · LOI 5%</span>
+            <button class="btn prim" style="margin-left:auto" onclick="compute()">Compute suggested split</button>
+          </div>
+          <div id="vehicles"></div>
+          <div class="grp">
+            <h3>Suggested negligence split</h3>
+            <table class="res">
+              <thead><tr><th>Vehicle</th><th>Party</th><th>Suggested %</th><th>Range (Low – High)</th></tr></thead>
+              <tbody id="restbody"><tr><td colspan="4" style="color:#94a3b8">Click “Compute suggested split”.</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- PANEL 2 SCENE -->
+        <div class="panel" id="p2">
+          <div class="grp"><h3>Location &amp; traffic</h3><div class="row2"><div class="field"><label>Location</label><input type="text" value="Madison Heights"></div><div class="field"><label>Traffic Control</label><input type="text"></div></div></div>
+          <div class="grp"><h3>Weather</h3><div class="chips"><span class="chip on">Day</span><span class="chip on">Dry</span><span class="chip">Overcast</span><span class="chip">Raining</span><span class="chip">Wet Roadways</span><span class="chip">Snow/Ice</span><span class="chip">Fog</span><span class="chip">High Wind</span></div></div>
+          <div class="grp"><h3>Speed</h3><div class="row2"><div><label>Insured speed</label><div class="chips"><span class="chip on">Reasonable</span><span class="chip">Too Fast</span><span class="chip">Too Slow</span><span class="chip">Unknown</span></div></div><div><label>Claimant speed</label><div class="chips"><span class="chip">Reasonable</span><span class="chip on">Too Fast</span><span class="chip">Too Slow</span><span class="chip">Unknown</span></div></div></div></div>
+          <div class="grp"><h3>Distractions</h3><div class="row2"><div><label>Insured</label><div class="chips"><span class="chip on">No Evidence</span><span class="chip">Cell Phone</span><span class="chip">Other</span></div></div><div><label>Claimant</label><div class="chips"><span class="chip">No Evidence</span><span class="chip on">Cell Phone</span><span class="chip">Other</span></div></div></div></div>
+        </div>
+
+        <!-- PANEL 3 DUTIES -->
+        <div class="panel" id="p3">
+          <div class="callout">✔ Duty text auto-loaded for <b>Virginia</b> from state reference — adjuster fills the Evidence side.</div>
+          <div class="duty"><div class="dh">Right of Way <span class="badge">Va. Code § 46.2-804</span></div><div class="db"><div class="col"><div class="clbl">Duty (auto-loaded)</div><div class="seed"><b>§ 46.2-804</b> — a vehicle shall be driven as nearly as practicable entirely within a single lane and shall not be moved until safe.</div></div><div class="col"><div class="clbl">Evidence of breach</div><textarea rows="3"></textarea></div></div></div>
+          <div class="duty"><div class="dh">Lookout <span class="badge">handbook p.22</span></div><div class="db"><div class="col"><div class="clbl">Duty (auto-loaded)</div><div class="seed">Failing to identify a risk is the single biggest crash contributor; look down the road, sides, and behind.</div></div><div class="col"><div class="clbl">Evidence of breach</div><textarea rows="3"></textarea></div></div></div>
+          <div class="duty"><div class="dh">Avoidance <span class="badge">handbook p.19</span></div><div class="db"><div class="col"><div class="clbl">Duty (auto-loaded)</div><div class="seed">Maintain a space cushion; use the two/three/four-second rule to keep room to react.</div></div><div class="col"><div class="clbl">Evidence of breach</div><textarea rows="3"></textarea></div></div></div>
+        </div>
+
+        <!-- PANEL 4 IMPACT -->
+        <div class="panel" id="p4">
+          <div class="grp"><h3>Impact</h3><div class="row2"><div class="field"><label>Location of impact</label><input type="text"></div><div class="field"><label>Point of impact</label><input type="text"></div></div></div>
+          <div class="grp"><h3>Multi-car notes</h3><textarea rows="3"></textarea></div>
+          <div class="grp"><h3>Assessment summary</h3><textarea rows="5" id="summary">Multi-Car negligence computed from the Vehicles tab.</textarea><div class="hint" style="color:#0a7640">✦ Optional: “Generate with Ask CTK” to draft from the answers above.</div></div>
+        </div>
+      </div>
+
+      <div class="m-foot">
+        <button class="btn ghost">Cancel</button>
+        <div class="spacer"></div>
+        <button class="btn line" onclick="step(-1)">‹ Back</button>
+        <button class="btn line" onclick="step(1)">Next ›</button>
+        <button class="btn prim">Save Assessment</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+  const OPT = {
+    row: ['Right of Way','Someone Else Had ROW','Both Had ROW','Unknown'],
+    fore: ['Foreseeable: Yes','Foreseeable: No','Unknown'],
+    dr: ['Recognized: Strongly','Moderately','Somewhat','A Little','Not at All','Unknown'],
+    drIssue: ['Looked But Did Not See Danger','Inattentive / View Obstruction','Failed to See/Give Signals','Distracted — Cell Phone','Distracted — Other','Other','None'],
+    speed: ['Appropriate for Conditions','Too Fast for Conditions','Too Slow for Conditions','Unknown'],
+    speedContrib: ['Speed Did Not Contribute','Contributed Slightly','Contributed Significantly','Unknown'],
+    avoid: ['Failed to Brake/Slow Appropriately','Failed to Speed Up Appropriately','Failed to Change Lanes/Swerve','Failed to Sound Horn/Flash Lights','Other','None'],
+    lane: ["Completely in Claimant's Lane","Completely in Insured's Lane",'Shared Equally','Slightly Favored Claimant','Slightly Favored Insured','Strongly Favors Claimant','Strongly Favors Insured','Favored Neither'],
+  };
+  const sel = (label, arr) => `<div class="f"><label>${label}</label><select>${arr.map(o=>`<option>${o}</option>`).join('')}</select></div>`;
+
+  function vehicleCard(i){
+    const insured = i===1;
+    return `<div class="veh">
+      <div class="vh">Vehicle ${i} <span class="who ${insured?'ins':'clm'}">${insured?'Insured':'Claimant'}</span>
+        <input type="text" placeholder="Driver name">
+      </div>
+      <div class="vbody">
+        <div class="vgrid">
+          ${sel('Right of way', OPT.row)}
+          ${sel('Foreseeability', OPT.fore)}
+          ${sel('Lookout / danger recognition', OPT.dr)}
+          ${sel('Danger recognition issue', OPT.drIssue)}
+          ${sel('Speed', OPT.speed)}
+          ${sel('Speed contribution', OPT.speedContrib)}
+          ${sel('Avoidance action', OPT.avoid)}
+          ${sel('Physical evidence (lane / POI)', OPT.lane)}
+          <div class="f"><label>Point of Impact (POI)</label><input type="text"></div>
+          <div class="f"><label>Location of Impact (LOI)</label><input type="text"></div>
+        </div>
+        <div class="vres">Suggested negligence: <b>—%</b> <span>(range —–—)</span></div>
+      </div>
+    </div>`;
+  }
+  function renderVehicles(){
+    const n = +document.getElementById('vcount').value;
+    let html=''; for(let i=1;i<=n;i++) html+=vehicleCard(i);
+    document.getElementById('vehicles').innerHTML = html;
+    document.getElementById('restbody').innerHTML = '<tr><td colspan="4" style="color:#94a3b8">Click “Compute suggested split”.</td></tr>';
+  }
+  function compute(){
+    // MOCKUP: illustrate the calculator output (real version uses the weighted causation model).
+    const n = +document.getElementById('vcount').value;
+    const base = Math.round(100/n);
+    let rows='';
+    for(let i=1;i<=n;i++){
+      const pct = i===n ? 100-base*(n-1) : base;
+      rows += `<tr><td>Vehicle ${i}</td><td>${i===1?'Insured':'Claimant'}</td><td><b>${pct}%</b></td><td>${Math.max(0,pct-5)}% – ${Math.min(100,pct+5)}%</td></tr>`;
+    }
+    document.getElementById('restbody').innerHTML = rows;
+    document.querySelectorAll('#vehicles .vres').forEach((el,k)=>{
+      const pct = k===n-1 ? 100-base*(n-1) : base;
+      el.innerHTML = `Suggested negligence: <b>${pct}%</b> <span>(range ${Math.max(0,pct-5)}% – ${Math.min(100,pct+5)}%)</span>`;
+    });
+  }
+
+  // tabs
+  const tabs = [...document.querySelectorAll('.tab')];
+  function visibleTabs(){ return tabs.filter(t=>!t.classList.contains('hidden')); }
+  function show(panelId){
+    tabs.forEach(t=>t.classList.toggle('active', t.dataset.t===panelId));
+    document.querySelectorAll('.panel').forEach(p=>p.classList.toggle('active', p.id===panelId));
+  }
+  tabs.forEach(t=>t.onclick=()=>show(t.dataset.t));
+  function step(d){
+    const vis = visibleTabs();
+    const curId = (tabs.find(t=>t.classList.contains('active'))||vis[0]).dataset.t;
+    let idx = vis.findIndex(t=>t.dataset.t===curId);
+    idx = Math.max(0, Math.min(vis.length-1, idx+d));
+    show(vis[idx].dataset.t);
+  }
+
+  function onType(){
+    const v = document.getElementById('atsel').value;
+    const isMC = v==='Multi Car';
+    document.getElementById('tabmc').classList.toggle('hidden', !isMC);
+    document.getElementById('mc').classList.toggle('on', isMC);
+    document.getElementById('negNote').style.display = isMC ? 'block':'none';
+    document.getElementById('atnote').textContent = isMC
+      ? 'Multi-Car → fill the “Multi-Car Vehicles” tab (replaces the Excel).'
+      : (v ? '“'+v+'” template loads here (replaces its old spreadsheet).' : 'Each type replaces its old spreadsheet template.');
+  }
+  function toggleMC(el){ el.classList.toggle('on'); }
+
+  renderVehicles(); onType();
+</script>
+</body>
+</html>
