@@ -1,0 +1,863 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Prompt Governance</title>
+<style>
+  :root {
+    --navy: #1B2A45;
+    --navy-ink: #142038;
+    --navy-soft: #E7EAF1;
+    --paper: #F2F4F7;
+    --surface: #FFFFFF;
+    --surface-2: #F1F4F6;
+    --ink: #1B2A3D;
+    --muted: #5B6472;
+    --faint: #8A93A0;
+    --line: #E3E7EB;
+    --accent: #1F7A3D;
+    --accent-dark: #175E2F;
+    --accent-ink: #FFFFFF;
+    --accent-soft: #E7F3EC;
+    --danger: #B3261E;
+    --danger-soft: #FBEAEA;
+    --focus-ring: rgba(31,122,61,.35);
+    --shadow: 0 1px 2px rgba(20,32,58,.05), 0 8px 20px rgba(20,32,58,.06);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font: 14px/1.55 "Inter", sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+  }
+  .mono { font-family: ui-monospace, "Cascadia Code", "SF Mono", Consolas, monospace; }
+  .tabular { font-variant-numeric: tabular-nums; }
+  .app-shell { max-width: 1580px; margin: 0 auto; padding: 24px 28px 64px; }
+  .icon { width: 18px; height: 18px; flex: none; display: block; }
+
+  :focus-visible { outline: 3px solid var(--focus-ring); outline-offset: 1px; border-radius: 6px; }
+
+  /* ---------------- Top bar ---------------- */
+  .app-topbar { background: var(--navy); }
+  .app-topbar-inner { max-width: 1580px; margin: 0 auto; padding: 14px 28px; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+  .brand { display: flex; align-items: center; gap: 10px; }
+  .brand-mark { width: 32px; height: 32px; border-radius: 9px; background: var(--accent); display: flex; align-items: center; justify-content: center; flex: none; }
+  .brand-mark .icon { width: 18px; height: 18px; color: #fff; }
+  .brand-text { color: #fff; font-size: 17px; font-weight: 800; letter-spacing: -0.01em; }
+  .page-tabs { display: flex; gap: 4px; background: rgba(255,255,255,.09); border-radius: 10px; padding: 4px; }
+  .page-tab { border: none; background: transparent; font: inherit; font-weight: 700; font-size: 13px; color: rgba(255,255,255,.72); padding: 8px 16px; border-radius: 7px; cursor: pointer; transition: background-color .15s ease, color .15s ease; }
+  .page-tab:hover { color: #fff; }
+  .page-tab.active { background: var(--accent); color: #fff; }
+
+  .page-view { display: none; }
+  .page-view.active { display: block; }
+
+  /* ---------------- Dashboard ---------------- */
+  .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 20px; }
+  .kpi-tile { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; box-shadow: var(--shadow); padding: 16px 18px; display: flex; gap: 12px; align-items: flex-start; }
+  .kpi-icon { width: 36px; height: 36px; border-radius: 10px; background: var(--accent-soft); color: var(--accent-dark); display: flex; align-items: center; justify-content: center; flex: none; }
+  .kpi-tile .kpi-label { font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--faint); margin-bottom: 6px; }
+  .kpi-tile .kpi-value { font-size: 26px; font-weight: 800; letter-spacing: -0.01em; line-height: 1.1; }
+  .kpi-tile .kpi-sub { font-size: 12px; color: var(--muted); margin-top: 3px; }
+
+  .dash-grid { display: grid; grid-template-columns: 1.3fr 1fr; gap: 16px; align-items: start; }
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; box-shadow: var(--shadow); padding: 18px 20px; margin-bottom: 16px; }
+  .card-head { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+  .card-icon { width: 30px; height: 30px; border-radius: 50%; background: var(--accent-soft); color: var(--accent-dark); display: flex; align-items: center; justify-content: center; flex: none; }
+  .card-icon .icon { width: 16px; height: 16px; }
+  .card h3 { margin: 0; font-size: 14.5px; font-weight: 800; }
+
+  .bar-row { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+  .bar-row:last-child { margin-bottom: 0; }
+  .bar-label { width: 110px; flex: none; font-size: 12.5px; font-weight: 700; color: var(--ink); }
+  .bar-track { flex: 1; height: 22px; background: var(--surface-2); border-radius: 6px; overflow: hidden; position: relative; }
+  .bar-fill { height: 100%; border-radius: 6px 0 0 6px; }
+  .bar-fill.auto { background: var(--accent); }
+  .bar-fill.compliance { background: var(--navy); }
+  .bar-fill.override { background: var(--accent); }
+  .bar-fill.global { background: var(--faint); }
+  .bar-value { width: 30px; flex: none; text-align: right; font-size: 12.5px; font-weight: 700; }
+
+  .legend { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 12px; font-size: 12px; color: var(--muted); }
+  .legend-item { display: flex; align-items: center; gap: 6px; }
+  .legend-dot { width: 9px; height: 9px; border-radius: 50%; flex: none; }
+
+  .company-bar-list .company-bar-row { display: grid; grid-template-columns: 120px 1fr 78px; align-items: center; gap: 10px; margin-bottom: 9px; }
+  .company-bar-list .company-bar-row:last-child { margin-bottom: 0; }
+  .company-bar-name { font-size: 12.5px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .company-bar-note { font-size: 11.5px; color: var(--faint); text-align: right; }
+
+  .donut-wrap { display: flex; align-items: center; gap: 22px; flex-wrap: wrap; }
+  .donut-legend { display: flex; flex-direction: column; gap: 9px; font-size: 12.5px; }
+
+  .activity-list { display: flex; flex-direction: column; gap: 0; }
+  .activity-item { display: flex; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+  .activity-item:last-child { border-bottom: none; padding-bottom: 0; }
+  .activity-dot { width: 8px; height: 8px; border-radius: 50%; margin-top: 6px; flex: none; }
+  .activity-dot.auto { background: var(--accent); }
+  .activity-dot.compliance { background: var(--navy); }
+  .activity-text { font-size: 13px; }
+  .activity-when { font-size: 11.5px; color: var(--faint); margin-top: 1px; }
+
+  .yn { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; flex: none; }
+  .yn.yes { background: var(--accent-soft); color: var(--accent-dark); }
+  .yn.no { background: var(--surface-2); color: var(--faint); }
+  .yn .icon { width: 12px; height: 12px; }
+
+  .table-scroll { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+  /* ---------------- Management scope switcher ---------------- */
+  .scope-switcher { display: flex; flex-wrap: wrap; align-items: center; gap: 18px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; margin-bottom: 18px; box-shadow: var(--shadow); }
+  .scope-group { display: flex; flex-direction: column; gap: 6px; flex: 0 1 auto; min-width: 0; }
+  .scope-group .label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--faint); }
+
+  .segmented { display: flex; flex-wrap: wrap; background: var(--surface-2); border: 1px solid var(--line); border-radius: 8px; padding: 3px; }
+  .segmented button { border: none; background: transparent; font: inherit; font-weight: 700; font-size: 13px; color: var(--muted); padding: 7px 16px; border-radius: 6px; cursor: pointer; transition: background-color .15s ease, color .15s ease; white-space: nowrap; }
+  .segmented button.active { background: var(--accent); color: #fff; }
+
+  .select-box { appearance: none; font: inherit; font-weight: 700; font-size: 14px; color: var(--ink); background: var(--surface-2) url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="10" height="6" viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" stroke="%235B6472" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>') no-repeat right 12px center; border: 1px solid var(--line); border-radius: 7px; padding: 8px 32px 8px 12px; min-width: 220px; max-width: 100%; cursor: pointer; transition: border-color .15s ease; }
+  .select-box:hover { border-color: var(--faint); }
+
+  .scope-note-row { flex: 1 1 240px; min-width: 200px; font-size: 12.5px; color: var(--muted); }
+  .scope-note-row.is-compliance-global { color: var(--navy); font-weight: 600; }
+
+  .table-card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; box-shadow: var(--shadow); overflow: hidden; }
+  table { width: 100%; border-collapse: collapse; min-width: 640px; }
+  thead th { text-align: left; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--faint); background: var(--surface-2); padding: 12px 18px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  tbody td { padding: 14px 18px; border-bottom: 1px solid var(--line); vertical-align: middle; position: relative; }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr { transition: background-color .12s ease; }
+  tbody tr:hover { background: var(--surface-2); }
+  tbody tr.status-override td:first-child::before,
+  tbody tr.status-new td:first-child::before {
+    content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+  }
+  tbody tr.status-override td:first-child::before { background: var(--accent); }
+  tbody tr.status-new td:first-child::before { background: var(--faint); }
+  .prompt-name { font-weight: 700; }
+  .type-key { color: var(--muted); }
+  .empty-state { padding: 40px 18px; text-align: center; color: var(--faint); }
+
+  .pill { display: inline-flex; align-items: center; gap: 5px; border-radius: 100px; padding: 3px 10px; font-size: 12px; font-weight: 700; white-space: nowrap; }
+  .pill.default { background: var(--surface-2); color: var(--muted); }
+  .pill.override { background: var(--accent-soft); color: var(--accent-dark); }
+  .pill.new { background: var(--surface-2); color: var(--faint); }
+  .pill.global-only { background: var(--navy-soft); color: var(--navy); }
+  .pill .dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+
+  .btn { display: inline-flex; align-items: center; gap: 6px; border: none; border-radius: 7px; padding: 7px 14px; font-size: 13px; font-weight: 700; font-family: inherit; cursor: pointer; transition: background-color .15s ease, color .15s ease, transform .1s ease, box-shadow .15s ease; }
+  .btn.primary { background: var(--accent); color: var(--accent-ink); }
+  .btn.primary:hover { background: var(--accent-dark); box-shadow: 0 4px 10px rgba(31,122,61,.25); }
+  .btn.primary:active { transform: translateY(1px); box-shadow: none; }
+  .btn.ghost { background: transparent; color: var(--muted); border: 1px solid var(--line); }
+  .btn.ghost:hover { background: var(--surface-2); }
+  .btn.ghost:active { transform: translateY(1px); }
+  .btn[disabled] { opacity: .45; cursor: not-allowed; transform: none !important; box-shadow: none !important; }
+
+  .overlay { position: fixed; inset: 0; background: rgba(15,20,30,.45); opacity: 0; pointer-events: none; transition: opacity .18s ease; z-index: 40; }
+  .overlay.open { opacity: 1; pointer-events: auto; }
+
+  .panel { position: fixed; top: 0; right: 0; height: 100%; width: min(940px, 94vw); background: var(--surface); box-shadow: -12px 0 32px rgba(15,20,30,.18); transform: translateX(100%); transition: transform .22s cubic-bezier(.32,.72,0,1); z-index: 41; display: flex; flex-direction: column; }
+  .panel.open { transform: translateX(0); }
+  .panel-head { display: flex; align-items: flex-start; justify-content: space-between; padding: 20px 22px 16px; border-bottom: 1px solid var(--line); flex: none; }
+  .panel-head h2 { margin: 0 0 4px; font-size: 18px; font-weight: 800; }
+  .panel-close { border: none; background: var(--surface-2); color: var(--muted); width: 30px; height: 30px; border-radius: 7px; cursor: pointer; flex: none; font-size: 15px; transition: background-color .15s ease, color .15s ease; }
+  .panel-close:hover { background: var(--line); color: var(--ink); }
+  .panel-body { padding: 18px 22px; overflow-y: auto; flex: 1; }
+  .scope-callout { font-size: 12.5px; padding: 10px 12px; border-radius: 8px; margin-bottom: 16px; background: var(--surface-2); color: var(--muted); border: 1px solid var(--line); }
+  .scope-callout b { color: var(--ink); }
+  .scope-callout.is-override { background: var(--accent-soft); color: var(--accent-dark); border-color: transparent; }
+  .scope-callout.is-override b { color: var(--accent-dark); }
+  .scope-callout.is-global-only { background: var(--navy-soft); color: var(--navy); border-color: transparent; }
+  .scope-callout.is-global-only b { color: var(--navy); }
+  .field-label { display: block; font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--faint); margin-bottom: 6px; }
+  .field { margin-bottom: 18px; }
+  textarea, input[type="text"] { width: 100%; border: 1px solid var(--line); border-radius: 8px; background: var(--surface-2); color: var(--ink); padding: 10px 12px; font-size: 13px; font-family: inherit; transition: border-color .15s ease; }
+  textarea:hover, input[type="text"]:hover { border-color: var(--faint); }
+  textarea#editor-textarea { min-height: 200px; resize: vertical; line-height: 1.5; }
+  .version-badges { display: flex; gap: 8px; align-items: center; margin-bottom: 16px; }
+  .history-heading { margin: 24px 0 10px; font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--faint); }
+  .history-list { display: flex; flex-direction: column; gap: 10px; }
+  .history-item { border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; background: var(--surface-2); }
+  .history-item-top { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin-bottom: 4px; }
+  .history-item-top .v { font-weight: 700; font-size: 12.5px; }
+  .history-item-top .when { font-size: 11.5px; color: var(--faint); flex: none; }
+  .history-note { font-size: 12.5px; color: var(--muted); margin-bottom: 6px; }
+  .history-empty { font-size: 12.5px; color: var(--faint); font-style: italic; }
+  .panel-foot { display: flex; align-items: center; justify-content: flex-end; gap: 10px; padding: 14px 22px; border-top: 1px solid var(--line); flex: none; }
+
+  @media (max-width: 980px) {
+    .dash-grid { grid-template-columns: 1fr; }
+    .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 640px) {
+    .app-shell { padding: 16px 16px 48px; }
+    .app-topbar-inner { padding: 12px 16px; }
+    .kpi-grid { grid-template-columns: 1fr; }
+    .scope-switcher { padding: 14px; gap: 14px; }
+    .scope-group { flex: 1 1 100%; }
+    .select-box { min-width: 0; width: 100%; }
+    .segmented { width: 100%; }
+    .segmented button { flex: 1; text-align: center; }
+    .company-bar-list .company-bar-row { grid-template-columns: 88px 1fr 60px; gap: 8px; }
+    .bar-label { width: 84px; font-size: 11.5px; }
+    .panel-body, .panel-head, .panel-foot { padding-left: 16px; padding-right: 16px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="app-topbar">
+  <div class="app-topbar-inner">
+    <div class="brand">
+      <span class="brand-mark"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6l8-4z"/><path d="M9 12l2 2 4-4"/></svg></span>
+      <span class="brand-text">Prompt Governance</span>
+    </div>
+    <nav class="page-tabs" aria-label="Pages">
+      <button class="page-tab active" data-page="dashboard">Dashboard</button>
+      <button class="page-tab" data-page="management">Prompt Management</button>
+    </nav>
+  </div>
+</header>
+
+<div class="app-shell">
+
+  <!-- ================= DASHBOARD ================= -->
+  <div class="page-view active" id="view-dashboard">
+
+    <div class="kpi-grid" id="kpi-grid"></div>
+
+    <div class="dash-grid">
+      <div>
+        <div class="card">
+          <div class="card-head">
+            <span class="card-icon"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l9 5-9 5-9-5 9-5z"/><path d="M3 13l9 5 9-5"/></svg></span>
+            <h3>Prompts by family</h3>
+          </div>
+          <div id="chart-family"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <span class="card-icon"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16.5 3.5a2.12 2.12 0 013 3L7 19l-4 1 1-4 12.5-12.5z"/></svg></span>
+            <h3>Override coverage by company</h3>
+          </div>
+          <div class="company-bar-list" id="chart-company-override"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <span class="card-icon"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg></span>
+            <h3>Recent activity</h3>
+          </div>
+          <div class="activity-list" id="activity-list"></div>
+        </div>
+      </div>
+
+      <div>
+        <div class="card">
+          <div class="card-head">
+            <span class="card-icon"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 010 18M12 3a9 9 0 000 18"/></svg></span>
+            <h3>Compliance by line of business</h3>
+          </div>
+          <div class="donut-wrap">
+            <svg id="donut-svg" width="140" height="140" viewBox="0 0 140 140"></svg>
+            <div class="donut-legend" id="donut-legend"></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <span class="card-icon"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18"/><path d="M9 21v-4h6v4M9 8h.01M9 12h.01M15 8h.01M15 12h.01"/></svg></span>
+            <h3>Companies</h3>
+          </div>
+          <div id="company-family-table"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ================= MANAGEMENT ================= -->
+  <div class="page-view" id="view-management">
+
+    <div class="scope-switcher">
+      <div class="scope-group">
+        <span class="label">Product / Family</span>
+        <div class="segmented" id="family-switcher">
+          <button data-family="auto" class="active">Auto Liability</button>
+          <button data-family="compliance">Compliance</button>
+        </div>
+      </div>
+
+      <div class="scope-group" id="lob-group" style="display:none;">
+        <span class="label">Line of Business</span>
+        <select class="select-box" id="lob-select">
+          <option value="">All Lines of Business</option>
+        </select>
+      </div>
+
+      <div class="scope-group">
+        <span class="label">Company</span>
+        <select class="select-box" id="company-select">
+          <option value="">Global Default (base template)</option>
+        </select>
+      </div>
+
+      <span class="scope-note-row" id="scope-note"></span>
+    </div>
+
+    <div class="table-card">
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Prompt Name</th>
+              <th>Type Key</th>
+              <th>Version</th>
+              <th>Status</th>
+              <th>Last Modified</th>
+              <th style="text-align:right;">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="table-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="overlay" id="overlay"></div>
+
+<div class="panel" id="editor-panel" role="dialog" aria-modal="true">
+  <div class="panel-head">
+    <div>
+      <h2 id="editor-title">Prompt</h2>
+      <div class="type-key mono" id="editor-typekey">type_key</div>
+    </div>
+    <button class="panel-close" id="editor-close" aria-label="Close">✕</button>
+  </div>
+  <div class="panel-body">
+    <div class="scope-callout" id="editor-scope-callout"></div>
+    <div class="version-badges">
+      <span class="pill default tabular" id="editor-version-pill"><span class="dot"></span>v1</span>
+      <span class="pill default" id="editor-status-pill"><span class="dot"></span>Default</span>
+    </div>
+    <div class="field">
+      <label class="field-label" for="editor-textarea">Prompt text</label>
+      <textarea id="editor-textarea" class="mono" spellcheck="false"></textarea>
+    </div>
+    <div class="field" style="margin-bottom: 4px;">
+      <label class="field-label" for="editor-note">Change note (optional)</label>
+      <input type="text" id="editor-note" placeholder="e.g. Clarified word limit for adjuster summaries">
+    </div>
+    <div class="history-heading">Version history</div>
+    <div class="history-list" id="editor-history"></div>
+  </div>
+  <div class="panel-foot">
+    <button class="btn ghost" id="editor-cancel">Cancel</button>
+    <button class="btn primary" id="editor-save">Save new version</button>
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  // =====================================================================
+  // Mock data
+  // =====================================================================
+
+  // No Company <-> DBLineOfBusiness relationship exists in the schema yet. The real
+  // "which product does this company have" mechanism is a different, unlinked taxonomy
+  // (CompanyProducts / CTKProducts / CTKSubProducts). This mapping gives the Family/LOB
+  // filter something to work against until that design decision is made.
+  var COMPANIES = [
+    { id: 21,   name: 'Farmers Alliance', auto: true,  compliance: false, complianceLobs: [] },
+    { id: 26,   name: 'Good2go',          auto: true,  compliance: true,  complianceLobs: ['Auto', 'Commercial'] },
+    { id: 38,   name: 'NARS',             auto: false, compliance: true,  complianceLobs: ['Auto', 'Commercial', 'Homeowners'] },
+    { id: 1182, name: 'United Auto',      auto: true,  compliance: false, complianceLobs: [] },
+    { id: 1183, name: 'Grand River',      auto: true,  compliance: true,  complianceLobs: ['Homeowners'] }
+  ];
+
+  var LOBS = ['Auto', 'Commercial', 'Homeowners'];
+
+  // Real type keys from the live AskCtk_Auto_Prompt_Type seed. overrideCompanyIds = which
+  // companies have saved their own version (everyone else resolves to Global Default).
+  var AUTO_TYPES = [
+    { typeKey: 'weather_system',       typeName: 'Weather System Prompt',       overrideCompanyIds: [1182] },
+    { typeKey: 'claim_summary',        typeName: 'Claim Summary',               overrideCompanyIds: [1182, 26] },
+    { typeKey: 'party_duty_summary',   typeName: 'Party Duty Summary',          overrideCompanyIds: [] },
+    { typeKey: 'overall_duty_summary', typeName: 'Overall Duty Summary',        overrideCompanyIds: [] },
+    { typeKey: 'chatbot_starters',     typeName: 'Default Prompts for Chatbot', overrideCompanyIds: [1182] }
+  ];
+
+  // Nothing seeded live yet for Compliance. NOTE: AskCtk_Compliance_Prompt has no CompanyId
+  // column, so these are global-only, always, regardless of company selection.
+  var COMPLIANCE_TYPES = [
+    { typeKey: 'state_law_summary', typeName: 'State Law Summary' },
+    { typeKey: 'chatbot_greeting',  typeName: 'Compliance Chatbot Greeting' }
+  ];
+
+  function k(family, typeKey, scope) { return family + ':' + typeKey + ':' + scope; }
+
+  var PROMPT_DATA = {};
+
+  PROMPT_DATA[k('auto', 'weather_system', 'global')] = {
+    versionNumber: 3, lastModifiedAt: '2026-08-01T14:20:00Z',
+    promptText: 'You are the Claim Toolkit weather-analysis assistant. Given the loss location, date, and time, determine whether adverse weather (rain, snow, fog, wet or icy roadways) was a contributing factor. Cite the specific condition and the time window it applies to.',
+    history: [
+      { versionNumber: 3, changedAt: '2026-08-01T14:20:00Z', changeNote: 'Clarified wet-roadway threshold' },
+      { versionNumber: 2, changedAt: '2026-07-22T09:05:00Z', changeNote: 'Added WeatherEmergency alert wording' },
+      { versionNumber: 1, changedAt: '2026-07-10T11:00:00Z', changeNote: null }
+    ]
+  };
+  PROMPT_DATA[k('auto', 'weather_system', '1182')] = {
+    versionNumber: 1, lastModifiedAt: '2026-07-30T16:40:00Z',
+    promptText: 'United Auto override: same as Global Default, but omit severe-weather disclaimers from the summary text per their claims-handling guidelines.',
+    history: [
+      { versionNumber: 1, changedAt: '2026-07-30T16:40:00Z', changeNote: 'United requested no severe-weather disclaimers' }
+    ]
+  };
+
+  PROMPT_DATA[k('auto', 'claim_summary', 'global')] = {
+    versionNumber: 5, lastModifiedAt: '2026-08-04T10:12:00Z',
+    promptText: 'Summarize this auto liability claim in 3-4 sentences: accident type, location, parties involved, and current negotiation status. Use plain, adjuster-facing language.',
+    history: [
+      { versionNumber: 5, changedAt: '2026-08-04T10:12:00Z', changeNote: 'Shortened to 3-4 sentences per Mark feedback' },
+      { versionNumber: 4, changedAt: '2026-07-26T13:30:00Z', changeNote: null },
+      { versionNumber: 3, changedAt: '2026-07-18T08:50:00Z', changeNote: 'Added negotiation-status requirement' }
+    ]
+  };
+  PROMPT_DATA[k('auto', 'claim_summary', '1182')] = {
+    versionNumber: 2, lastModifiedAt: '2026-08-02T09:00:00Z',
+    promptText: 'United Auto override: include the ToolkitID and assigned adjuster name at the top of the summary.',
+    history: [
+      { versionNumber: 2, changedAt: '2026-08-02T09:00:00Z', changeNote: 'Added adjuster name requirement' },
+      { versionNumber: 1, changedAt: '2026-07-28T15:10:00Z', changeNote: null }
+    ]
+  };
+  PROMPT_DATA[k('auto', 'claim_summary', '26')] = {
+    versionNumber: 1, lastModifiedAt: '2026-07-29T12:00:00Z',
+    promptText: 'Good2go override: keep summaries under 2 sentences for their mobile adjuster app.',
+    history: [
+      { versionNumber: 1, changedAt: '2026-07-29T12:00:00Z', changeNote: null }
+    ]
+  };
+
+  PROMPT_DATA[k('auto', 'party_duty_summary', 'global')] = {
+    versionNumber: 2, lastModifiedAt: '2026-07-24T11:40:00Z',
+    promptText: 'For the given party, summarize their assigned duty of care (right-of-way, speed, lookout, avoidance) and whether the evidence supports a breach.',
+    history: [
+      { versionNumber: 2, changedAt: '2026-07-24T11:40:00Z', changeNote: 'Added avoidance duty to the checklist' },
+      { versionNumber: 1, changedAt: '2026-07-15T09:00:00Z', changeNote: null }
+    ]
+  };
+
+  PROMPT_DATA[k('auto', 'overall_duty_summary', 'global')] = { versionNumber: null, lastModifiedAt: null, promptText: '', history: [] };
+
+  PROMPT_DATA[k('auto', 'chatbot_starters', 'global')] = {
+    versionNumber: 1, lastModifiedAt: '2026-07-12T10:00:00Z',
+    promptText: 'Summarize this claim | What is the liability position? | Draft a settlement letter | Show weather at time of loss',
+    history: [ { versionNumber: 1, changedAt: '2026-07-12T10:00:00Z', changeNote: null } ]
+  };
+  PROMPT_DATA[k('auto', 'chatbot_starters', '1182')] = {
+    versionNumber: 1, lastModifiedAt: '2026-07-31T14:00:00Z',
+    promptText: 'Summarize this claim | Show United-specific liability checklist | Draft a settlement letter',
+    history: [ { versionNumber: 1, changedAt: '2026-07-31T14:00:00Z', changeNote: 'Swapped in United-specific checklist chip' } ]
+  };
+
+  // Compliance: global only, no per-company scope
+  PROMPT_DATA[k('compliance', 'state_law_summary', 'global')] = {
+    versionNumber: 4, lastModifiedAt: '2026-08-03T09:15:00Z',
+    promptText: 'Given a state and a compliance question, cite the applicable statute or regulation, its effective date, and a one-sentence plain-language summary. Never answer without a citation.',
+    history: [
+      { versionNumber: 4, changedAt: '2026-08-03T09:15:00Z', changeNote: 'Require citation on every answer, no exceptions' },
+      { versionNumber: 3, changedAt: '2026-07-27T10:00:00Z', changeNote: null },
+      { versionNumber: 2, changedAt: '2026-07-20T08:30:00Z', changeNote: 'Added effective-date requirement' },
+      { versionNumber: 1, changedAt: '2026-07-14T12:00:00Z', changeNote: null }
+    ]
+  };
+  PROMPT_DATA[k('compliance', 'chatbot_greeting', 'global')] = {
+    versionNumber: 2, lastModifiedAt: '2026-07-29T16:00:00Z',
+    promptText: 'Hi, I\'m the Compliance assistant. Ask me about state regulations, emergency orders, or insurance department contacts.',
+    history: [
+      { versionNumber: 2, changedAt: '2026-07-29T16:00:00Z', changeNote: 'Simplified opening line' },
+      { versionNumber: 1, changedAt: '2026-07-18T09:00:00Z', changeNote: null }
+    ]
+  };
+
+  var ACTIVITY = [
+    { family: 'compliance', text: '<b>Rana</b> saved a new version of <b>State Law Summary</b>', when: '2026-08-03T09:15:00Z' },
+    { family: 'auto', text: '<b>Khizar</b> saved a <b>United Auto</b> override of <b>Claim Summary</b>', when: '2026-08-02T09:00:00Z' },
+    { family: 'auto', text: '<b>Rana</b> saved a new global version of <b>Claim Summary</b>', when: '2026-08-04T10:12:00Z' },
+    { family: 'compliance', text: '<b>Rana</b> saved a new version of <b>Compliance Chatbot Greeting</b>', when: '2026-07-29T16:00:00Z' },
+    { family: 'auto', text: '<b>Khizar</b> saved a <b>Good2go</b> override of <b>Claim Summary</b>', when: '2026-07-29T12:00:00Z' },
+    { family: 'auto', text: '<b>Rana</b> saved a <b>United Auto</b> override of <b>Weather System Prompt</b>', when: '2026-07-30T16:40:00Z' }
+  ].sort(function (a, b) { return new Date(b.when) - new Date(a.when); });
+
+  // =====================================================================
+  // Shared helpers
+  // =====================================================================
+
+  function fmtDate(iso) {
+    if (!iso) return 'Never';
+    var d = new Date(iso);
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  }
+  function fmtRelative(iso) {
+    var days = Math.round((Date.now() - new Date(iso).getTime()) / 86400000);
+    if (days <= 0) return 'today';
+    if (days === 1) return 'yesterday';
+    return days + ' days ago';
+  }
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+  var CHECK_ICON = '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>';
+  var X_ICON = '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>';
+  function ynBadge(isYes) { return '<span class="yn ' + (isYes ? 'yes' : 'no') + '">' + (isYes ? CHECK_ICON : X_ICON) + '</span>'; }
+
+  // =====================================================================
+  // Page tabs
+  // =====================================================================
+  var pageTabs = document.querySelectorAll('.page-tab');
+  pageTabs.forEach(function (tab) {
+    tab.addEventListener('click', function () {
+      pageTabs.forEach(function (t) { t.classList.remove('active'); });
+      tab.classList.add('active');
+      document.querySelectorAll('.page-view').forEach(function (v) { v.classList.remove('active'); });
+      document.getElementById('view-' + tab.dataset.page).classList.add('active');
+    });
+  });
+
+  // =====================================================================
+  // DASHBOARD
+  // =====================================================================
+  function renderDashboard() {
+    var autoCount = AUTO_TYPES.length;
+    var complianceCount = COMPLIANCE_TYPES.length;
+    var totalTypes = autoCount + complianceCount;
+
+    var companiesWithOverride = COMPANIES.filter(function (c) {
+      return AUTO_TYPES.some(function (t) { return t.overrideCompanyIds.indexOf(c.id) !== -1; });
+    }).length;
+
+    var totalVersions = 0;
+    Object.keys(PROMPT_DATA).forEach(function (key) { totalVersions += PROMPT_DATA[key].history.length; });
+
+    var kpiIcons = {
+      types: '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l9 5-9 5-9-5 9-5z"/><path d="M3 13l9 5 9-5"/></svg>',
+      companies: '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18"/><path d="M9 21v-4h6v4M9 8h.01M9 12h.01M15 8h.01M15 12h.01"/></svg>',
+      override: '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16.5 3.5a2.12 2.12 0 013 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>',
+      versions: '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>'
+    };
+
+    // ---- KPI tiles ----
+    var kpis = [
+      { icon: kpiIcons.types, label: 'Prompt Types', value: totalTypes, sub: autoCount + ' Auto, ' + complianceCount + ' Compliance' },
+      { icon: kpiIcons.companies, label: 'Companies Onboarded', value: COMPANIES.length, sub: 'Enabled for Prompt Governance' },
+      { icon: kpiIcons.override, label: 'Companies With an Override', value: companiesWithOverride, sub: (COMPANIES.length - companiesWithOverride) + ' rely on Global Default' },
+      { icon: kpiIcons.versions, label: 'Versions Saved', value: totalVersions, sub: 'Across all types and companies' }
+    ];
+    document.getElementById('kpi-grid').innerHTML = kpis.map(function (kpi) {
+      return '<div class="kpi-tile"><span class="kpi-icon">' + kpi.icon + '</span><div><div class="kpi-label">' + kpi.label + '</div>' +
+        '<div class="kpi-value tabular">' + kpi.value + '</div>' +
+        '<div class="kpi-sub">' + kpi.sub + '</div></div></div>';
+    }).join('');
+
+    // ---- Family bar chart ----
+    var maxCount = Math.max(autoCount, complianceCount, 1);
+    document.getElementById('chart-family').innerHTML =
+      barRow('Auto Liability', autoCount, maxCount, 'auto') +
+      barRow('Compliance', complianceCount, maxCount, 'compliance') +
+      '<div class="legend">' +
+        '<div class="legend-item"><span class="legend-dot" style="background:var(--accent)"></span>Auto Liability</div>' +
+        '<div class="legend-item"><span class="legend-dot" style="background:var(--navy)"></span>Compliance</div>' +
+      '</div>';
+
+    function barRow(label, value, max, cls) {
+      var pct = Math.round((value / max) * 100);
+      return '<div class="bar-row"><div class="bar-label">' + label + '</div>' +
+        '<div class="bar-track"><div class="bar-fill ' + cls + '" style="width:' + pct + '%"></div></div>' +
+        '<div class="bar-value tabular">' + value + '</div></div>';
+    }
+
+    // ---- Company override coverage (Auto only) ----
+    document.getElementById('chart-company-override').innerHTML = COMPANIES.map(function (c) {
+      var overrides = AUTO_TYPES.filter(function (t) { return t.overrideCompanyIds.indexOf(c.id) !== -1; }).length;
+      var pct = Math.round((overrides / autoCount) * 100);
+      var note = overrides + ' of ' + autoCount;
+      return '<div class="company-bar-row">' +
+        '<div class="company-bar-name">' + escapeHtml(c.name) + '</div>' +
+        '<div class="bar-track"><div class="bar-fill ' + (overrides ? 'override' : 'global') + '" style="width:' + pct + '%"></div></div>' +
+        '<div class="company-bar-note">' + note + '</div></div>';
+    }).join('');
+
+    // ---- Recent activity ----
+    document.getElementById('activity-list').innerHTML = ACTIVITY.map(function (a) {
+      return '<div class="activity-item"><span class="activity-dot ' + a.family + '"></span>' +
+        '<div><div class="activity-text">' + a.text + '</div>' +
+        '<div class="activity-when">' + fmtRelative(a.when) + '</div></div></div>';
+    }).join('');
+
+    // ---- LOB donut (all 5 companies; only Compliance-flagged ones contribute) ----
+    var lobCounts = { Auto: 0, Commercial: 0, Homeowners: 0 };
+    COMPANIES.forEach(function (c) { c.complianceLobs.forEach(function (l) { lobCounts[l]++; }); });
+    var lobColors = { Auto: 'var(--accent)', Commercial: 'var(--navy)', Homeowners: '#7FA88F' };
+    var lobTotal = lobCounts.Auto + lobCounts.Commercial + lobCounts.Homeowners || 1;
+    var r = 55, circumference = 2 * Math.PI * r, offset = 0, segs = '';
+    LOBS.forEach(function (lob) {
+      var frac = lobCounts[lob] / lobTotal;
+      var len = frac * circumference;
+      segs += '<circle cx="70" cy="70" r="' + r + '" fill="none" stroke="' + lobColors[lob] + '" stroke-width="20" ' +
+        'stroke-dasharray="' + len + ' ' + (circumference - len) + '" stroke-dashoffset="' + (-offset) + '" transform="rotate(-90 70 70)"></circle>';
+      offset += len;
+    });
+    document.getElementById('donut-svg').innerHTML = segs +
+      '<circle cx="70" cy="70" r="40" fill="var(--surface)"></circle>';
+    document.getElementById('donut-legend').innerHTML = LOBS.map(function (lob) {
+      return '<div class="legend-item"><span class="legend-dot" style="background:' + lobColors[lob] + '"></span>' +
+        lob + ': ' + lobCounts[lob] + ' compan' + (lobCounts[lob] === 1 ? 'y' : 'ies') + '</div>';
+    }).join('');
+
+    // ---- Company table (all 5) ----
+    document.getElementById('company-family-table').innerHTML =
+      '<div class="table-scroll"><table><thead><tr><th>Company</th><th>Auto</th><th>Compliance</th><th>Compliance LOBs</th></tr></thead><tbody>' +
+      COMPANIES.map(function (c) {
+        return '<tr><td class="prompt-name">' + escapeHtml(c.name) + '</td>' +
+          '<td>' + ynBadge(c.auto) + '</td>' +
+          '<td>' + ynBadge(c.compliance) + '</td>' +
+          '<td>' + (c.complianceLobs.length ? escapeHtml(c.complianceLobs.join(', ')) : 'None') + '</td></tr>';
+      }).join('') + '</tbody></table></div>';
+  }
+
+  // =====================================================================
+  // MANAGEMENT
+  // =====================================================================
+  var mgmt = { family: 'auto', lob: '', companyId: null, editingKey: null };
+
+  var familySwitcher = document.getElementById('family-switcher');
+  var lobGroup = document.getElementById('lob-group');
+  var lobSelect = document.getElementById('lob-select');
+  var companySelect = document.getElementById('company-select');
+  var scopeNote = document.getElementById('scope-note');
+  var tableBody = document.getElementById('table-body');
+
+  LOBS.forEach(function (lob) {
+    var opt = document.createElement('option');
+    opt.value = lob; opt.textContent = lob;
+    lobSelect.appendChild(opt);
+  });
+
+  familySwitcher.addEventListener('click', function (e) {
+    var btn = e.target.closest('button[data-family]');
+    if (!btn) return;
+    mgmt.family = btn.dataset.family;
+    mgmt.lob = '';
+    lobSelect.value = '';
+    familySwitcher.querySelectorAll('button').forEach(function (b) { b.classList.remove('active'); });
+    btn.classList.add('active');
+    lobGroup.style.display = mgmt.family === 'compliance' ? '' : 'none';
+    renderManagementTable();
+  });
+
+  lobSelect.addEventListener('change', function () {
+    mgmt.lob = lobSelect.value;
+    renderManagementTable();
+  });
+
+  companySelect.addEventListener('change', function () {
+    mgmt.companyId = companySelect.value ? Number(companySelect.value) : null;
+    renderManagementTable();
+  });
+
+  // All 5 companies are always selectable, in both Family and every Line of Business -
+  // access does not gate the list, it only affects which prompt table is shown.
+  function renderCompanyOptions() {
+    companySelect.innerHTML = '<option value="">Global Default (base template)</option>' +
+      COMPANIES.map(function (c) { return '<option value="' + c.id + '">' + escapeHtml(c.name) + '</option>'; }).join('');
+    companySelect.value = mgmt.companyId ? String(mgmt.companyId) : '';
+  }
+
+  function companyName(id) {
+    if (!id) return 'Global Default';
+    var c = COMPANIES.filter(function (c) { return c.id === id; })[0];
+    return c ? c.name : ('Company #' + id);
+  }
+
+  function currentTypes() { return mgmt.family === 'auto' ? AUTO_TYPES : COMPLIANCE_TYPES; }
+
+  function renderManagementTable() {
+    var isCompliance = mgmt.family === 'compliance';
+
+    if (isCompliance) {
+      scopeNote.className = 'scope-note-row is-compliance-global';
+      scopeNote.textContent = 'Compliance prompts are global-only. Selecting a company does not change the prompt shown below.';
+    } else {
+      scopeNote.className = 'scope-note-row';
+      scopeNote.textContent = mgmt.companyId
+        ? 'Viewing prompts effective for ' + companyName(mgmt.companyId) + '. Overridden rows apply only to this company.'
+        : 'Viewing the shared base template used by every company that has not created its own override.';
+    }
+
+    var types = currentTypes();
+    if (!types.length) {
+      tableBody.innerHTML = '<tr><td colspan="6" class="empty-state">No prompt types configured for this scope.</td></tr>';
+      return;
+    }
+
+    tableBody.innerHTML = types.map(function (t) {
+      var scopeKey = (!isCompliance && mgmt.companyId) ? String(mgmt.companyId) : 'global';
+      var data = PROMPT_DATA[k(mgmt.family, t.typeKey, scopeKey)] || PROMPT_DATA[k(mgmt.family, t.typeKey, 'global')];
+      var isNew = !data || data.versionNumber == null;
+      var isOverride = !isCompliance && mgmt.companyId && t.overrideCompanyIds.indexOf(mgmt.companyId) !== -1;
+      var statusClass = isCompliance ? 'global-only' : (isNew ? 'new' : (isOverride ? 'override' : 'default'));
+      var statusText = isCompliance ? 'Global' : (isNew ? 'Not set' : (isOverride ? 'Override' : 'Default'));
+      var rowClass = isOverride ? 'status-override' : (isNew ? 'status-new' : '');
+      return '<tr class="' + rowClass + '">' +
+        '<td class="prompt-name">' + escapeHtml(t.typeName) + '</td>' +
+        '<td class="type-key mono">' + escapeHtml(t.typeKey) + '</td>' +
+        '<td class="tabular">' + (isNew ? 'Not set' : 'v' + data.versionNumber) + '</td>' +
+        '<td><span class="pill ' + statusClass + '"><span class="dot"></span>' + statusText + '</span></td>' +
+        '<td class="tabular">' + (data ? fmtDate(data.lastModifiedAt) : 'Never') + '</td>' +
+        '<td style="text-align:right;"><button class="btn primary" data-action="edit" data-key="' + escapeHtml(t.typeKey) + '">Edit</button></td>' +
+        '</tr>';
+    }).join('');
+  }
+
+  tableBody.addEventListener('click', function (e) {
+    var btn = e.target.closest('button[data-action="edit"]');
+    if (!btn) return;
+    openEditor(btn.dataset.key);
+  });
+
+  // ---- overlay / panel ----
+  var overlay = document.getElementById('overlay');
+  var editorPanel = document.getElementById('editor-panel');
+  function openPanel() { overlay.classList.add('open'); editorPanel.classList.add('open'); }
+  function closePanel() { overlay.classList.remove('open'); editorPanel.classList.remove('open'); }
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closePanel(); });
+
+  var editorTitle = document.getElementById('editor-title');
+  var editorTypekey = document.getElementById('editor-typekey');
+  var editorScopeCallout = document.getElementById('editor-scope-callout');
+  var editorVersionPill = document.getElementById('editor-version-pill');
+  var editorStatusPill = document.getElementById('editor-status-pill');
+  var editorTextarea = document.getElementById('editor-textarea');
+  var editorNote = document.getElementById('editor-note');
+  var editorHistory = document.getElementById('editor-history');
+  var editorSaveBtn = document.getElementById('editor-save');
+
+  function openEditor(typeKey) {
+    var isCompliance = mgmt.family === 'compliance';
+    var hasCompanyScope = !isCompliance && !!mgmt.companyId;
+    var scopeKey = hasCompanyScope ? String(mgmt.companyId) : 'global';
+    mgmt.editingKey = typeKey;
+
+    var type = currentTypes().filter(function (t) { return t.typeKey === typeKey; })[0];
+    var dataKey = k(mgmt.family, typeKey, scopeKey);
+    if (!PROMPT_DATA[dataKey]) PROMPT_DATA[dataKey] = { versionNumber: null, promptText: '', history: [] };
+
+    // The table/textarea must reflect the same effective value everywhere: a company's own
+    // override if it has saved one, otherwise the Global Default it currently inherits.
+    // Editing always writes into the company-scoped stub (dataKey), starting a fresh v1
+    // lineage, but what we display before that first save is the inherited text, not blank.
+    var isOverride = hasCompanyScope && type.overrideCompanyIds.indexOf(mgmt.companyId) !== -1;
+    var globalData = PROMPT_DATA[k(mgmt.family, typeKey, 'global')] || { versionNumber: null, promptText: '', history: [] };
+    var effective = (hasCompanyScope && isOverride) ? PROMPT_DATA[dataKey] : globalData;
+    var isNew = effective.versionNumber == null;
+
+    editorTitle.textContent = type.typeName;
+    editorTypekey.textContent = typeKey;
+    editorTextarea.value = effective.promptText || '';
+    editorNote.value = '';
+
+    var pillClass = isCompliance ? 'global-only' : (isNew ? 'new' : (isOverride ? 'override' : 'default'));
+
+    if (isCompliance) {
+      editorScopeCallout.className = 'scope-callout is-global-only';
+      editorScopeCallout.innerHTML = 'Editing: <b>Global (system-wide)</b>. Compliance prompts have no per-company override. Saving this updates the answer for every company.';
+    } else if (!mgmt.companyId) {
+      editorScopeCallout.className = 'scope-callout';
+      editorScopeCallout.innerHTML = isNew
+        ? 'Editing: <b>Global Default</b>. No version has been saved yet. Type the initial prompt text and Save to create version 1.'
+        : 'Editing: <b>Global Default</b>. Saving updates the shared base template used by every company that has not created its own override.';
+    } else {
+      editorScopeCallout.className = 'scope-callout' + (isOverride ? ' is-override' : '');
+      editorScopeCallout.innerHTML = 'Editing: <b>' + escapeHtml(companyName(mgmt.companyId)) + '</b>. ' +
+        (isNew ? 'No global default or override exists yet for this prompt. Type the initial text and Save to create version 1.'
+         : isOverride ? 'This company already has its own override. Saving adds a new version to its history.'
+                      : 'Saving will create a new company-specific override, pre-filled from the current Global Default. Every other company keeps the shared default.');
+    }
+
+    editorVersionPill.className = 'pill tabular ' + pillClass;
+    editorVersionPill.innerHTML = '<span class="dot"></span>' + (isNew ? 'New' : 'v' + effective.versionNumber);
+    editorStatusPill.className = 'pill ' + pillClass;
+    editorStatusPill.innerHTML = '<span class="dot"></span>' + (isCompliance ? 'Global' : (isNew ? 'Not set' : (isOverride ? 'Override' : 'Default')));
+
+    renderHistory(effective.history || []);
+    openPanel();
+  }
+
+  function renderHistory(history) {
+    if (!history.length) {
+      editorHistory.innerHTML = '<div class="history-empty">No earlier versions yet. This is the first.</div>';
+      return;
+    }
+    editorHistory.innerHTML = history.slice().reverse().map(function (h) {
+      return '<div class="history-item"><div class="history-item-top">' +
+        '<span class="history-item-left"><span class="v tabular">v' + h.versionNumber + '</span></span>' +
+        '<span class="when tabular">' + fmtDate(h.changedAt) + '</span></div>' +
+        (h.changeNote ? '<div class="history-note">' + escapeHtml(h.changeNote) + '</div>' : '') +
+        '</div>';
+    }).join('');
+  }
+
+  document.getElementById('editor-close').addEventListener('click', closePanel);
+  document.getElementById('editor-cancel').addEventListener('click', closePanel);
+
+  editorSaveBtn.addEventListener('click', function () {
+    var text = editorTextarea.value.trim();
+    if (!text) { editorTextarea.focus(); return; }
+
+    var isCompliance = mgmt.family === 'compliance';
+    var scopeKey = (!isCompliance && mgmt.companyId) ? String(mgmt.companyId) : 'global';
+    var dataKey = k(mgmt.family, mgmt.editingKey, scopeKey);
+    var data = PROMPT_DATA[dataKey] || { versionNumber: 0, history: [] };
+    var nextVersion = (data.versionNumber || 0) + 1;
+    var note = editorNote.value.trim() || null;
+
+    data.versionNumber = nextVersion;
+    data.promptText = text;
+    data.lastModifiedAt = new Date().toISOString();
+    data.history = (data.history || []).concat([{ versionNumber: nextVersion, changedAt: data.lastModifiedAt, changeNote: note }]);
+    PROMPT_DATA[dataKey] = data;
+
+    if (!isCompliance && mgmt.companyId) {
+      var type = AUTO_TYPES.filter(function (t) { return t.typeKey === mgmt.editingKey; })[0];
+      if (type && type.overrideCompanyIds.indexOf(mgmt.companyId) === -1) type.overrideCompanyIds.push(mgmt.companyId);
+    }
+
+    closePanel();
+    renderManagementTable();
+    renderDashboard();
+  });
+
+  // =====================================================================
+  // init
+  // =====================================================================
+  renderDashboard();
+  renderCompanyOptions();
+  renderManagementTable();
+})();
+</script>
+</body>
+</html>
